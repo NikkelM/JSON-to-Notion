@@ -1,5 +1,7 @@
 {
 	"$schema": "config.schema.json",
+	"notionIntegrationKey": "",
+	"notionDatabaseId": "",
 	"inputFile": "input.json",
 	"inputIsArray": true
 }
