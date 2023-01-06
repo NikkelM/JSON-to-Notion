@@ -80,25 +80,31 @@
 						"default": {
 							"policy": "useFirstProperty"
 						},
+						"additionalProperties": false,
 						"properties": {
 							"policy": {
 								"description": "The policy to use when the value to the specified JSON key another JSON object.",
 								"type": "string",
-								"default": "useFirstProperty",
+								"default": "useNamedProperty",
 								"oneOf": [
 									{
-										"const": "useFirstProperty",
-										"title": "Use the value of the first property within the nested property. This property must not be another object."
+										"const": "useNamedProperty",
+										"title": "Use the value of the property with a specific name as defined by the \"namedProperty\" property in the configuration. If the value of this property is another object, the value of the first child property will be used."
 									},
 									{
 										"const": "concatenateProperties",
-										"title": "The values of all properties within the nested property will be concatenated into a single string, with \",\" as a delimiter. This property must not be another object."
+										"title": "The values of all properties within the nested property will be concatenated into a single string, with \",\" as a delimiter. If the value of this property is another object, the value of the first child property will be used."
 									},
 									{
 										"const": "usePriorityList",
-										"title": "Try to use the value of the property with the highest priority as defined by the \"priorityList\" property. If a property with the specified key does not exist, move to the property with the next highest priority. The values of these properties must not be another object."
+										"title": "Try to use the value of the property with the highest priority as defined by the \"priorityList\" property in the configuration. If a property with the specified key does not exist, move to the property with the next highest priority. If no matching property is found, the value is interpreted as \"null\". If the value of the chosen property is another object, the value of the first child property will be used."
 									}
 								]
+							},
+							"namedProperty": {
+								"description": "The name of the property to use when the \"policy\" is set to \"useNamedProperty\".",
+								"type": "string",
+								"default": "namedProperty"
 							},
 							"priorityList": {
 								"description": "The prioritized list of properties to use when the \"policy\" is set to \"usePriorityList\". The script will use the value of the property with the highest priority.",
@@ -124,6 +130,22 @@
 							"required": [
 								"priorityList"
 							]
+						},
+						"else": {
+							"if": {
+								"properties": {
+									"policy": {
+										"enum": [
+											"useNamedProperty"
+										]
+									}
+								}
+							},
+							"then": {
+								"required": [
+									"namedProperty"
+								]
+							}
 						}
 					},
 					"required": [

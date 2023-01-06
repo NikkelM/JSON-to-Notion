@@ -9,7 +9,11 @@
 			"notionPropertyName": "keyInNotion",
 			"notionPropertyType": "rich_text",
 			"nestedPropertyPolicy": {
-				"policy": "useFirstProperty"
+				"policy": "usePriorityList",
+				"priorityList": [
+					"highestPriorityProperty",
+					"secondHighestPriorityProperty"
+				]
 			}
 		}
 	]
