@@ -30,12 +30,68 @@
 			"description": "If true, the input JSON file will be expected to be an array containing JSON objects. If false, the input JSON will be expected to be a JSON object where the value to each top-level key is another JSON object.",
 			"type": "boolean",
 			"default": true
-		}
-	},
-	"required": [
-		"notionIntegrationKey",
-		"notionDatabaseId",
-		"inputFile",
-		"inputIsArray"
-	]
+		},
+		"propertyMappings": {
+			"description": "The mapping of JSON keys to Notion property names. If an existing JSON key is not mapped, it will be ignored.",
+			"type": "array",
+			"default": [
+				{
+					"jsonKey": "keyInJson",
+					"notionPropertyName": "keyInNotion",
+					"notionPropertyType": "rich_text"
+				}
+			],
+			"minItems": 1,
+			"items": {
+				"description": "A mapping of a JSON key to a Notion property name.",
+				"type": "object",
+				"additionalProperties": false,
+				"properties": {
+					"jsonKey": {
+						"description": "The JSON key to map to the Notion property.",
+						"type": "string",
+						"default": ""
+					},
+					"notionPropertyName": {
+						"description": "The Notion property name to map to the JSON key.",
+						"type": "string",
+						"default": ""
+					},
+					"notionPropertyType": {
+						"description": "The type of the Notion property. Note: Not all property types are supported as of now.",
+						"type": "string",
+						"default": "text",
+						"enum": [
+							"rich_text",
+							"number",
+							"select",
+							"multi_select",
+							"status",
+							"date",
+							"title",
+							"files",
+							"checkbox",
+							"url",
+							"email",
+							"phone_number",
+							"cover",
+							"icon"
+						]
+					}
+				},
+				"required": [
+					"jsonKey",
+					"notionPropertyName",
+					"notionPropertyType"
+				]
+			}
+		},
+		"required": [
+			"notionIntegrationKey",
+			"notionDatabaseId",
+			"inputFile",
+			"inputIsArray",
+			"propertyMappings"
+		]
+	}
 }

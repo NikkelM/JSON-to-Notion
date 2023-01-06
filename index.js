@@ -5,10 +5,10 @@
 process.removeAllListeners('warning');
 
 import { CONFIG } from './js/utils.js';
-import { getGamesFromNotionDatabase, updateNotionPage, checkNotionPropertiesExistence } from './js/notion.js';
+import { checkNotionPropertiesExistence } from './js/notion.js';
 
 // ---------- Setup ----------
 
 // We need to do this here because of circular imports
 // TODO: Is this still true?
-await checkNotionPropertiesExistence()
+await checkNotionPropertiesExistence();
