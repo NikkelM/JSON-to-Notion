@@ -1,8 +1,8 @@
 {
-	"name": "advanced-json-to-csv",
+	"name": "json-to-notion",
 	"type": "module",
 	"version": "1.0.0",
-	"description": "Cherrypick properties from your JSON file that should be converted to CSV, optionally providing additional default values.",
+	"description": "Utility that is able to \"import\" JSON files to Notion - for cases where a CSV file is simply not available, and the conversion from JSON to CSV would be too complicated.",
 	"main": "index.js",
 	"dependencies": {
 		"jsonschema": "^1.4.1"

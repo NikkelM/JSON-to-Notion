@@ -1,7 +1,8 @@
 # Custom
 
-/output
-/dev
+output
+dev
+input
 **.xcf
 
 ## The user's custom configuration file
