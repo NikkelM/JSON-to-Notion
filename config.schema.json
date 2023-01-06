@@ -1,0 +1,14 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"title": "Advanced JSON to CSV configuration schema",
+	"description": "Validates configuration input for the \"Advanced JSON to CSV\" script.",
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"$schema": {
+			"description": "The JSON schema to use for the configuration file.",
+			"type": "string",
+			"default": "config.schema.json"
+		}
+	}
+}

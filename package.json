@@ -1,0 +1,10 @@
+{
+	"name": "advanced-json-to-csv",
+	"type": "module",
+	"version": "1.0.0",
+	"description": "Cherrypick properties from your JSON file that should be converted to CSV, optionally providing additional default values.",
+	"main": "index.js",
+	"dependencies": {
+		"jsonschema": "^1.4.1"
+	}
+}
