@@ -3,3 +3,12 @@
 
 // Suppresses the warning about the fetch API being unstable
 process.removeAllListeners('warning');
+
+import { CONFIG, INPUTFILE } from './js/utils.js';
+import { checkNotionPropertiesExistence } from './js/notion.js';
+
+// ---------- Setup ----------
+
+// We need to do this here because of circular imports
+// TODO: Is this still true?
+await checkNotionPropertiesExistence();

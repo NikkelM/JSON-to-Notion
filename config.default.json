@@ -1,5 +1,16 @@
 {
 	"$schema": "config.schema.json",
+	"notionIntegrationKey": "",
+	"notionDatabaseId": "",
 	"inputFile": "input.json",
-	"inputIsArray": true
+	"propertyMappings": [
+		{
+			"jsonKey": "keyInJson",
+			"notionPropertyName": "keyInNotion",
+			"notionPropertyType": "rich_text",
+			"nestedPropertyPolicy": {
+				"policy": "useFirstProperty"
+			}
+		}
+	]
 }
