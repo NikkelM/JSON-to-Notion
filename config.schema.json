@@ -26,11 +26,6 @@
 			"default": "input.json",
 			"pattern": ".*.json"
 		},
-		"inputIsArray": {
-			"description": "If true, the input JSON file will be expected to be an array containing JSON objects. If false, the input JSON will be expected to be a JSON object where the value to each top-level key is another JSON object.",
-			"type": "boolean",
-			"default": true
-		},
 		"propertyMappings": {
 			"description": "The mapping of JSON keys to Notion property names. If an existing JSON key is not mapped, it will be ignored.",
 			"type": "array",

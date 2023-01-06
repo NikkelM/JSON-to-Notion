@@ -4,7 +4,7 @@
 // Suppresses the warning about the fetch API being unstable
 process.removeAllListeners('warning');
 
-import { CONFIG } from './js/utils.js';
+import { CONFIG, INPUTFILE } from './js/utils.js';
 import { checkNotionPropertiesExistence } from './js/notion.js';
 
 // ---------- Setup ----------

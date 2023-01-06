@@ -4,6 +4,7 @@ import jsonschema from 'jsonschema';
 // ---------- Exported variables ----------
 
 export const CONFIG = getConfig();
+export const INPUTFILE = getInputFile();
 
 // ---------- Config ----------
 
@@ -36,4 +37,26 @@ function getConfig() {
 	}
 
 	return CONFIG;
+}
+
+// ---------- Input file validation ----------
+
+// Validate the input file
+function getInputFile() {
+	if (fs.existsSync(CONFIG.inputFile)) {
+		console.log(`Loading input file "${CONFIG.inputFile}"...`);
+	} else {
+		console.error(`Input file does not exist: ${CONFIG.inputFile}`);
+		process.exit(1);
+	}
+	const INPUTFILE = JSON.parse(fs.readFileSync(CONFIG.inputFile));
+
+	// Validate the input file
+	console.log("Validating input file...\n");
+	if (!Object.keys(INPUTFILE).every(key => typeof INPUTFILE[key] === 'object')) {
+		console.error("Not every property in the input file is an object!");
+		process.exit(1);
+	}
+
+	return INPUTFILE;
 }
