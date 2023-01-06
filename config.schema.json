@@ -33,7 +33,8 @@
 				{
 					"jsonKey": "keyInJson",
 					"notionPropertyName": "keyInNotion",
-					"notionPropertyType": "rich_text"
+					"notionPropertyType": "rich_text",
+					"nestedPropertyPolicy": "useFirstProperty"
 				}
 			],
 			"minItems": 1,
@@ -72,21 +73,73 @@
 							"cover",
 							"icon"
 						]
-					}
-				},
-				"required": [
-					"jsonKey",
-					"notionPropertyName",
-					"notionPropertyType"
-				]
-			}
-		},
-		"required": [
-			"notionIntegrationKey",
-			"notionDatabaseId",
-			"inputFile",
-			"inputIsArray",
-			"propertyMappings"
-		]
+					},
+					"nestedPropertyPolicy": {
+						"description": "The policy to use when the value to the specified JSON key another JSON object.",
+						"type": "object",
+						"default": {
+							"policy": "useFirstProperty"
+						},
+						"properties": {
+							"policy": {
+								"description": "The policy to use when the value to the specified JSON key another JSON object.",
+								"type": "string",
+								"default": "useFirstProperty",
+								"oneOf": [
+									{
+										"const": "useFirstProperty",
+										"title": "Use the value of the first property within the nested property. This property must not be another object."
+									},
+									{
+										"const": "concatenateProperties",
+										"title": "The values of all properties within the nested property will be concatenated into a single string, with \",\" as a delimiter. This property must not be another object."
+									},
+									{
+										"const": "usePriorityList",
+										"title": "Try to use the value of the property with the highest priority as defined by the \"priorityList\" property. If a property with the specified key does not exist, move to the property with the next highest priority. The values of these properties must not be another object."
+									}
+								]
+							},
+							"priorityList": {
+								"description": "The prioritized list of properties to use when the \"policy\" is set to \"usePriorityList\". The script will use the value of the property with the highest priority.",
+								"type": "array",
+								"default": [
+									"highestPriorityProperty",
+									"secondHighestPriorityProperty"
+								],
+								"minItems": 1,
+								"uniqueItems": true
+							}
+						},
+						"if": {
+							"properties": {
+								"policy": {
+									"enum": [
+										"usePriorityList"
+									]
+								}
+							}
+						},
+						"then": {
+							"required": [
+								"priorityList"
+							]
+						}
+					},
+					"required": [
+						"jsonKey",
+						"notionPropertyName",
+						"notionPropertyType"
+					]
+				}
+			},
+			"required": [
+				"notionIntegrationKey",
+				"notionDatabaseId",
+				"inputFile",
+				"inputIsArray",
+				"propertyMappings"
+			]
+		}
 	}
 }

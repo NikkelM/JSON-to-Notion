@@ -7,7 +7,10 @@
 		{
 			"jsonKey": "keyInJson",
 			"notionPropertyName": "keyInNotion",
-			"notionPropertyType": "rich_text"
+			"notionPropertyType": "rich_text",
+			"nestedPropertyPolicy": {
+				"policy": "useFirstProperty"
+			}
 		}
 	]
 }
