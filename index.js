@@ -1,5 +1,5 @@
 // Author: NikkelM
-// Description: Cherrypick properties from your JSON file that should be converted to CSV, optionally providing additional default values.
+// Description: Utility that is able to "import" JSON files to Notion - for cases where a CSV file is simply not available, and the conversion from JSON to CSV would be too complicated.
 
 // Suppresses the warning about the fetch API being unstable
-// process.removeAllListeners('warning');
+process.removeAllListeners('warning');

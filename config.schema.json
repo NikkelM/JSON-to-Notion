@@ -1,7 +1,7 @@
 {
 	"$schema": "https://json-schema.org/draft/2020-12/schema",
-	"title": "Advanced JSON to CSV configuration schema",
-	"description": "Validates configuration input for the \"Advanced JSON to CSV\" script.",
+	"title": "JSON to Notion configuration schema",
+	"description": "Validates configuration input for the \"JSON to Notion\" script.",
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
@@ -9,6 +9,21 @@
 			"description": "The JSON schema to use for the configuration file.",
 			"type": "string",
 			"default": "config.schema.json"
+		},
+		"inputFile": {
+			"description": "The JSON file to import to Notion.",
+			"type": "string",
+			"default": "input.json",
+			"pattern": ".*.json"
+		},
+		"inputIsArray": {
+			"description": "If true, the input JSON file will be expected to be an array containing JSON objects. If false, the input JSON will be expected to be a JSON object where the value to each top-level key is another JSON object.",
+			"type": "boolean",
+			"default": true
 		}
-	}
+	},
+	"required": [
+		"inputFile",
+		"inputIsArray"
+	]
 }
