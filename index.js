@@ -52,8 +52,6 @@ async function main() {
 			outputProperties.properties[extraProperty.notionPropertyName] = addToNotionObject(extraProperty.propertyValue, extraProperty.notionPropertyType);
 		}
 
-		console.log(outputProperties);
-
 		// Create a new page in the database
 		createNotionPage(outputProperties);
 	}
