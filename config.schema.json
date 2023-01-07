@@ -192,15 +192,39 @@
 						"description": "The type of the Notion property. Note: Not all property types are supported as of now. Unsupported types that may get supported later on: select, status, files, checkbox, email, phone number. If you would like one of these supproted, please open an Issue on the project's Github page.",
 						"type": "string",
 						"default": "text",
-						"enum": [
-							"rich_text",
-							"number",
-							"multi_select",
-							"date",
-							"title",
-							"url",
-							"cover",
-							"icon"
+						"oneOf": [
+							{
+								"const": "rich_text",
+								"title": "Default text property. Type string."
+							},
+							{
+								"const": "number",
+								"title": "A simple number. Type number."
+							},
+							{
+								"const": "multi_select",
+								"title": "A multi-select property. The input must be a string with \",\" as the delimiter. Type string."
+							},
+							{
+								"const": "date",
+								"title": "A date. Only start times are supported as of now, and due to Notion's requirements, the date must be in valid ISO 8601 format. Type string."
+							},
+							{
+								"const": "title",
+								"title": "The title property of the field. Type string."
+							},
+							{
+								"const": "url",
+								"title": "A URL. Type string."
+							},
+							{
+								"const": "cover",
+								"title": "A cover. The Notion API only allows external links, so the input must be a URL. Type string."
+							},
+							{
+								"const": "icon",
+								"title": "An icon. The Notion API only allows external links, so the input must be a URL. Type string."
+							}
 						]
 					}
 				}

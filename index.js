@@ -20,6 +20,8 @@ async function main() {
 
 	// run the following for loop for each object in the input file
 	for (const inputObject of INPUTFILE) {
+		// This is the object that will be written to Notion
+		// It contains a "property" property, as well as "icon" and "cover"
 		let outputProperties = {
 			"properties": {},
 			"icon": null,
@@ -27,18 +29,13 @@ async function main() {
 		};
 
 		for (const jsonProperty of CONFIG.propertyMappings) {
-			// This is the object that will be written to Notion
-			// It contains a "property" property, as well as "icon" and "cover"
-
 			switch (jsonProperty.notionPropertyType) {
 				case "title":
-					outputProperties = handleTextProperty(inputObject, jsonProperty, outputProperties, true);
-					break;
 				case "rich_text":
-					outputProperties = handleTextProperty(inputObject, jsonProperty, outputProperties, false);
-					break;
 				case "number":
-					outputProperties = handleNumberProperty(inputObject, jsonProperty, outputProperties);
+				case "date":
+				case "url":
+					outputProperties = formatProperty(inputObject, jsonProperty, outputProperties, jsonProperty.notionPropertyType);
 					break;
 				case "multi_select":
 					outputProperties = handleMultiSelectProperty(inputObject, jsonProperty, outputProperties);
@@ -54,7 +51,7 @@ async function main() {
 		console.log(outputProperties);
 
 		// Create a new page in the database
-		// createNotionPage(outputProperties);
+		createNotionPage(outputProperties);
 	}
 }
 
@@ -134,30 +131,28 @@ function addToNotionObject(value, type) {
 			return {
 				"multi_select": value
 			};
-		case "select":
+		case "date":
 			return {
-				"select": {
-					"name": value
+				"date": {
+					"start": value
 				}
+			};
+		case "url":
+			return {
+				"url": value
 			};
 	}
 }
 
 // ----- By property type -----
 
-function handleTextProperty(inputObject, configProperty, outputProperties, isTitle) {
-	console.log("Handling rich_text property...");
-
+function formatProperty(inputObject, configProperty, outputProperties, propertyType) {
 	// Get the value of the property from the JSON file. If it does not exist, set it to null
 	let value = inputObject[configProperty.jsonKey] || null;
 
-	if (typeof value === "object") {
+	if (value && typeof value === "object") {
 		value = applyNestedObjectPolicy(inputObject, configProperty);
 	}
-
-	const propertyType = isTitle
-		? "title"
-		: "rich_text";
 
 	// Set the value of the property in the output object
 	outputProperties.properties[configProperty.notionPropertyName] = addToNotionObject(value, propertyType);
@@ -165,29 +160,11 @@ function handleTextProperty(inputObject, configProperty, outputProperties, isTit
 	return outputProperties;
 }
 
-function handleNumberProperty(inputObject, configProperty, outputProperties) {
-	console.log("Handling number property...");
-
-	// Get the value of the property from the JSON file. If it does not exist, set it to null
-	let value = inputObject[configProperty.jsonKey] || null;
-
-	if (typeof value === "object") {
-		value = applyNestedObjectPolicy(inputObject, configProperty);
-	}
-
-	// Set the value of the property in the output object
-	outputProperties.properties[configProperty.notionPropertyName] = addToNotionObject(value, "number");
-
-	return outputProperties;
-}
-
 function handleMultiSelectProperty(inputObject, configProperty, outputProperties) {
-	console.log("Handling multi_select property...");
-
 	// Get the value of the property from the JSON file. If it does not exist, set it to null
 	let value = inputObject[configProperty.jsonKey] || null;
 
-	if (typeof value === "object") {
+	if (value && typeof value === "object") {
 		value = applyNestedObjectPolicy(inputObject, configProperty);
 	}
 
