@@ -26,6 +26,11 @@
 			"default": "input.json",
 			"pattern": ".*.json"
 		},
+		"writeErroredObjectsToFile": {
+			"description": "Whether to write the input objects that failed to be imported to Notion to a file. This speeds up the process of cleaning up those errors and trying again.",
+			"type": "boolean",
+			"default": true
+		},
 		"propertyMappings": {
 			"description": "The mapping of JSON keys to Notion property names. If an existing JSON key is not mapped, it will be ignored.",
 			"type": "array",
