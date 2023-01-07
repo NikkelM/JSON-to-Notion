@@ -19,6 +19,7 @@ main();
 
 async function main() {
 	let objectsToSkip = [];
+	let numObjectsSkipped = 0;
 	if (CONFIG.skipExisting?.enabled) {
 		console.log("Skipping existing objects, querying database...");
 		objectsToSkip = await getPagesToSkipFromNotionDatabase();
@@ -39,6 +40,7 @@ async function main() {
 	for (const [inputKey, inputObject] of Object.entries(INPUTFILE)) {
 		if (CONFIG.skipExisting?.enabled && objectsToSkip.includes(inputObject[CONFIG.skipExisting.jsonKey])) {
 			progressBar.increment();
+			numObjectsSkipped++;
 			continue;
 		}
 		try {
@@ -89,6 +91,10 @@ async function main() {
 	progressBar.stop();
 
 	console.log("\nImport finished.\n");
+
+	if (CONFIG.skipExisting?.enabled) {
+		console.log(`Skipped ${numObjectsSkipped} objects that already existed in the database.`);
+	}
 
 	if (erroredObjects.length > 0) {
 		console.log("The following objects could not be imported due to either an internal or Notion API error:\n");
