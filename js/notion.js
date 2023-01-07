@@ -9,18 +9,6 @@ const NOTION = new Client({
 });
 const databaseId = CONFIG.notionDatabaseId;
 
-
-// Deprecated/unused?
-export function updateNotionPage(pageId, properties) {
-	// Update a page in the database with new info
-	NOTION.pages.update({
-		page_id: pageId,
-		properties: properties.properties,
-		cover: properties.cover,
-		icon: properties.icon
-	});
-}
-
 export async function createNotionPage(properties) {
 	// Create a new page in the database
 	await NOTION.pages.create({
@@ -63,4 +51,55 @@ export async function checkNotionPropertiesExistence() {
 			process.exit(1);
 		}
 	}
+}
+
+// ---------- Duplicate check/Database query ----------
+
+// Get a list of pages in the Notion database that have the `CONFIG.skipExisting.notionProperty` field set 
+export async function getPagesToSkipFromNotionDatabase() {
+	const pages = [];
+
+	async function getPages(cursor) {
+		// While there are more pages left in the query, get pages from the database. 
+		const currentPages = await queryDatabase(cursor);
+
+		currentPages.results.forEach(page => {
+			switch (CONFIG.skipExisting.propertyType) {
+				case "title":
+				case "rich_text":
+					pages.push(page.properties[CONFIG.skipExisting.notionProperty][CONFIG.skipExisting.propertyType][0].plain_text);
+					break;
+				case "number":
+					pages.push(page.properties[CONFIG.skipExisting.notionProperty].number);
+					break;
+				case "select":
+					pages.push(page.properties[CONFIG.skipExisting.notionProperty].select.name);
+					break;
+				case "url":
+					pages.push(page.properties[CONFIG.skipExisting.notionProperty].url);
+			}
+		});
+
+		if (currentPages.has_more) {
+			await getPages(currentPages.next_cursor)
+		}
+	}
+
+	await getPages();
+	return pages;
+};
+
+// Fetch all pages from the database that have the specified property set to anything but null
+async function queryDatabase(cursor) {
+	return await NOTION.databases.query({
+		database_id: databaseId,
+		page_size: 100,
+		start_cursor: cursor,
+		filter: {
+			property: CONFIG.skipExisting.notionProperty,
+			[CONFIG.skipExisting.propertyType]: {
+				"is_not_empty": true
+			}
+		}
+	});
 }

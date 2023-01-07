@@ -26,6 +26,52 @@
 			"default": "input.json",
 			"pattern": ".*.json"
 		},
+		"skipExisting": {
+			"description": "Whether to skip existing entries in the database. If set to true, the script will only import entries that do not exist in the database yet.",
+			"type": "object",
+			"additionalProperties": false,
+			"default": {
+				"enabled": false,
+				"jsonKey": "keyInJSON",
+				"notionProperty": "ItemId",
+				"propertyType": "number"
+			},
+			"properties": {
+				"enabled": {
+					"description": "Whether to skip existing entries in the database.",
+					"type": "boolean",
+					"default": true
+				},
+				"jsonKey": {
+					"description": "The key in the JSON input that should be compared to the value of the \"notionProperty\".",
+					"type": "string",
+					"default": "keyInJSON"
+				},
+				"notionProperty": {
+					"description": "The name of the field in the Notion database that should be compared to the value of the \"jsonKey\".",
+					"type": "string",
+					"default": "ItemID"
+				},
+				"propertyType": {
+					"description": "The type of the property used for checking if an entry already exists in the database. Not all property types are supported.",
+					"type": "string",
+					"default": "rich_text",
+					"enum": [
+						"rich_text",
+						"title",
+						"number",
+						"select",
+						"url"
+					]
+				}
+			},
+			"required": [
+				"enabled",
+				"jsonKey",
+				"notionProperty",
+				"propertyType"
+			]
+		},
 		"writeErroredObjectsToFile": {
 			"description": "Whether to write the input objects that failed to be imported to Notion to a file. This speeds up the process of cleaning up those errors and trying again.",
 			"type": "boolean",
@@ -68,14 +114,9 @@
 							"number",
 							"select",
 							"multi_select",
-							"status",
 							"date",
 							"title",
-							"files",
-							"checkbox",
 							"url",
-							"email",
-							"phone_number",
 							"cover",
 							"icon"
 						]
@@ -194,7 +235,7 @@
 						"default": ""
 					},
 					"notionPropertyType": {
-						"description": "The type of the Notion property. Note: Not all property types are supported as of now. Unsupported types that may get supported later on: select, status, files, checkbox, email, phone number. If you would like one of these supproted, please open an Issue on the project's Github page.",
+						"description": "The type of the Notion property. Note: Not all property types are supported as of now. Unsupported types that may get supported later on: status, files, checkbox, email, phone number. If you would like one of these supproted, please open an Issue on the project's Github page.",
 						"type": "string",
 						"default": "text",
 						"oneOf": [
@@ -208,7 +249,11 @@
 							},
 							{
 								"const": "multi_select",
-								"title": "A multi-select property. The input must be a string with \",\" as the delimiter. Type string."
+								"title": "A multi-select property. The input must be an array with entries of the form {\"name\": \"WhatIWantToEnter\"}. Type array."
+							},
+							{
+								"const": "select",
+								"title": "A select property. Type string."
 							},
 							{
 								"const": "date",

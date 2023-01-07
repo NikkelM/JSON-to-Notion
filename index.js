@@ -7,7 +7,7 @@ process.removeAllListeners('warning');
 import cliProgress from 'cli-progress';
 
 import { CONFIG, INPUTFILE, writeErroredObjectsToFile } from './js/utils.js';
-import { checkNotionPropertiesExistence, createNotionPage } from './js/notion.js';
+import { checkNotionPropertiesExistence, createNotionPage, getPagesToSkipFromNotionDatabase } from './js/notion.js';
 
 // ---------- Setup ----------
 
@@ -18,7 +18,13 @@ await checkNotionPropertiesExistence();
 main();
 
 async function main() {
-	console.log("Starting import...");
+	let objectsToSkip = [];
+	if (CONFIG.skipExisting?.enabled) {
+		console.log("Skipping existing objects, querying database...");
+		objectsToSkip = await getPagesToSkipFromNotionDatabase();
+	}
+
+	console.log("Importing objects...");
 
 	let erroredObjects = [];
 	let errorMessages = [];
@@ -31,6 +37,10 @@ async function main() {
 
 	// run the following for loop for each object in the input file
 	for (const [inputKey, inputObject] of Object.entries(INPUTFILE)) {
+		if (CONFIG.skipExisting?.enabled && objectsToSkip.includes(inputObject[CONFIG.skipExisting.jsonKey])) {
+			progressBar.increment();
+			continue;
+		}
 		try {
 			// This is the object that will be written to Notion
 			// It contains a "property" property, as well as "icon" and "cover"
@@ -86,7 +96,7 @@ async function main() {
 		console.log("\nThe following error messages were returned:\n");
 		console.log(errorMessages);
 
-		if(CONFIG.writeErroredObjectsToFile) {
+		if (CONFIG.writeErroredObjectsToFile) {
 			writeErroredObjectsToFile(erroredObjects, errorMessages);
 		}
 	}
@@ -181,6 +191,10 @@ function addToNotionObject(value, type) {
 		case "url":
 			return {
 				"url": value
+			};
+		case "select":
+			return {
+				"select": value
 			};
 	}
 }

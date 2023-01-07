@@ -3,6 +3,12 @@
 	"notionIntegrationKey": "",
 	"notionDatabaseId": "",
 	"inputFile": "input.json",
+	"skipExisting": {
+		"enabled": false,
+		"jsonKey": "keyInJSON",
+		"notionProperty": "ItemId",
+		"propertyType": "number"
+	},
 	"writeErroredObjectsToFile": true,
 	"propertyMappings": [
 		{
