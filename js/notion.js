@@ -1,9 +1,12 @@
-import { Client } from '@notionhq/client';
+import { Client, LogLevel } from '@notionhq/client';
 import { CONFIG } from './utils.js';
 
 // ---------- Notion API ----------
 
-const NOTION = new Client({ auth: CONFIG.notionIntegrationKey });
+const NOTION = new Client({
+	auth: CONFIG.notionIntegrationKey,
+	logLevel: LogLevel.ERROR
+});
 const databaseId = CONFIG.notionDatabaseId;
 
 

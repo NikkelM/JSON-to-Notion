@@ -20,6 +20,9 @@ main();
 async function main() {
 	console.log("Starting import...");
 
+	let erroredObjects = [];
+	let errorMessages = [];
+
 	const progressBar = new cliProgress.SingleBar({
 		hideCursor: true,
 		format: '|{bar}| {percentage}% | {eta}s left | {value}/{total} objects imported'
@@ -27,46 +30,61 @@ async function main() {
 	progressBar.start(Object.keys(INPUTFILE).length, 0);
 
 	// run the following for loop for each object in the input file
-	for (const inputObject of INPUTFILE) {
-		// This is the object that will be written to Notion
-		// It contains a "property" property, as well as "icon" and "cover"
-		let outputProperties = {
-			"properties": {},
-			"icon": null,
-			"cover": null
-		};
+	for (const [inputKey, inputObject] of Object.entries(INPUTFILE)) {
+		try {
+			// This is the object that will be written to Notion
+			// It contains a "property" property, as well as "icon" and "cover"
+			let outputProperties = {
+				"properties": {},
+				"icon": null,
+				"cover": null
+			};
 
-		for (const jsonProperty of CONFIG.propertyMappings) {
-			switch (jsonProperty.notionPropertyType) {
-				case "title":
-				case "rich_text":
-				case "number":
-				case "date":
-				case "url":
-					outputProperties = formatProperty(inputObject, jsonProperty, outputProperties, jsonProperty.notionPropertyType);
-					break;
-				case "multi_select":
-					outputProperties = handleMultiSelectProperty(inputObject, jsonProperty, outputProperties);
-					break;
-				case "cover":
-				case "icon":
-					outputProperties = handlePageIconOrCover(inputObject, jsonProperty, outputProperties, jsonProperty.notionPropertyType);
-					break;
+			for (const jsonProperty of CONFIG.propertyMappings) {
+				switch (jsonProperty.notionPropertyType) {
+					case "title":
+					case "rich_text":
+					case "number":
+					case "date":
+					case "url":
+						outputProperties = formatProperty(inputObject, jsonProperty, outputProperties, jsonProperty.notionPropertyType);
+						break;
+					case "multi_select":
+						outputProperties = handleMultiSelectProperty(inputObject, jsonProperty, outputProperties);
+						break;
+					case "cover":
+					case "icon":
+						outputProperties = handlePageIconOrCover(inputObject, jsonProperty, outputProperties, jsonProperty.notionPropertyType);
+						break;
+				}
 			}
-		}
 
-		// Add the extraProperties
-		for (const extraProperty of CONFIG.extraProperties) {
-			outputProperties.properties[extraProperty.notionPropertyName] = addToNotionObject(extraProperty.propertyValue, extraProperty.notionPropertyType);
-		}
+			// Add the extraProperties
+			for (const extraProperty of CONFIG.extraProperties) {
+				outputProperties.properties[extraProperty.notionPropertyName] = addToNotionObject(extraProperty.propertyValue, extraProperty.notionPropertyType);
+			}
 
-		// Create a new page in the database
-		await createNotionPage(outputProperties);
+			// Create a new page in the database
+			await createNotionPage(outputProperties);
+		} catch (error) {
+			// Push the key of the errored object to the erroredObjects array
+			erroredObjects.push(inputKey);
+			// Push the error message to the errorMessages array
+			errorMessages.push(error);
+		}
 
 		progressBar.increment();
 	}
 
 	progressBar.stop();
+
+	console.log("Import finished.");
+	if (erroredObjects.length > 0) {
+		console.log("The following objects could not be imported due to either an internal or Notion API error:");
+		console.log(erroredObjects);
+		console.log("The following error messages were returned:");
+		console.log(errorMessages);
+	}
 }
 
 // ---------- Property handlers ----------
@@ -92,7 +110,7 @@ function applyNestedObjectPolicy(inputObject, configProperty) {
 		}
 
 		for (const property of priorityList) {
-			if (inputObject[configProperty.jsonKey][property] !== undefined) {
+			if (inputObject[configProperty.jsonKey][property]) {
 				output = inputObject[configProperty.jsonKey][property];
 				// If output is of type object, use the first value
 				if (typeof output === "object") {
@@ -172,6 +190,11 @@ function formatProperty(inputObject, configProperty, outputProperties, propertyT
 
 	if (value && typeof value === "object") {
 		value = applyNestedObjectPolicy(inputObject, configProperty);
+	}
+
+	// If the value is of type string, restrictit to a length of 2000 characters
+	if (typeof value === "string") {
+		value = value.slice(0, 2000);
 	}
 
 	// Set the value of the property in the output object
