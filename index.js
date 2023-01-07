@@ -32,17 +32,23 @@ async function main() {
 
 			switch (jsonProperty.notionPropertyType) {
 				case "title":
-					outputProperties = await handleTextProperty(inputObject, jsonProperty, outputProperties, true);
+					outputProperties = handleTextProperty(inputObject, jsonProperty, outputProperties, true);
 					break;
 				case "rich_text":
-					outputProperties = await handleTextProperty(inputObject, jsonProperty, outputProperties, false);
+					outputProperties = handleTextProperty(inputObject, jsonProperty, outputProperties, false);
 					break;
 				case "multi_select":
-					outputProperties = await handleMultiSelectProperty(inputObject, jsonProperty, outputProperties);
+					outputProperties = handleMultiSelectProperty(inputObject, jsonProperty, outputProperties);
 					break;
 			}
 		}
-		// console.log(outputProperties);
+
+		// Add the extraProperties
+		for (const extraProperty of CONFIG.extraProperties) {
+			console.log(extraProperty)
+			outputProperties.properties[extraProperty.notionPropertyName] = addToNotionObject(extraProperty.propertyValue, extraProperty.notionPropertyType);
+		}
+		console.log(outputProperties);
 
 		// Create a new page in the database
 		createNotionPage(outputProperties);
@@ -54,7 +60,6 @@ async function main() {
 // ----- Nested object policy -----
 
 function applyNestedObjectPolicy(inputObject, configProperty) {
-	console.log("Applying nested object policy...");
 	let output = "";
 	let priorityList = null;
 	try {
@@ -88,6 +93,46 @@ function applyNestedObjectPolicy(inputObject, configProperty) {
 		console.log("Config property:");
 		console.log(configProperty);
 		process.exit(1);
+	}
+}
+
+// ----- Formatting -----
+
+// Format a given value for input to the Notion API. The value itself must already be complete, e.g. a string for "rich_text" or an array of objects for "multi_select"
+function addToNotionObject(value, type) {
+	switch (type) {
+		case "title":
+			return {
+				"title": [
+					{
+						"type": "text",
+						"text": {
+							"content": value
+						}
+					}
+				]
+			};
+		case "rich_text":
+			return {
+				"rich_text": [
+					{
+						"type": "text",
+						"text": {
+							"content": value
+						}
+					}
+				]
+			};
+		case "multi_select":
+			return {
+				"multi_select": value
+			};
+		case "select":
+			return {
+				"select": {
+					"name": value
+				}
+			};
 	}
 }
 

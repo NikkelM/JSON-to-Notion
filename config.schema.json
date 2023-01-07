@@ -186,11 +186,6 @@
 					},
 					"propertyValue": {
 						"description": "The value to add to the Notion property.",
-						"type": [
-							"string",
-							"number",
-							"boolean"
-						],
 						"default": ""
 					},
 					"notionPropertyType": {
