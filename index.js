@@ -4,6 +4,8 @@
 // Suppresses the warning about the fetch API being unstable
 process.removeAllListeners('warning');
 
+import cliProgress from 'cli-progress';
+
 import { CONFIG, INPUTFILE } from './js/utils.js';
 import { checkNotionPropertiesExistence, createNotionPage } from './js/notion.js';
 
@@ -18,42 +20,70 @@ main();
 async function main() {
 	console.log("Starting import...");
 
+	let erroredObjects = [];
+	let errorMessages = [];
+
+	const progressBar = new cliProgress.SingleBar({
+		hideCursor: true,
+		format: '|{bar}| {percentage}% | {eta}s left | {value}/{total} objects imported'
+	}, cliProgress.Presets.legacy);
+	progressBar.start(Object.keys(INPUTFILE).length, 0);
+
 	// run the following for loop for each object in the input file
-	for (const inputObject of INPUTFILE) {
-		// This is the object that will be written to Notion
-		// It contains a "property" property, as well as "icon" and "cover"
-		let outputProperties = {
-			"properties": {},
-			"icon": null,
-			"cover": null
-		};
+	for (const [inputKey, inputObject] of Object.entries(INPUTFILE)) {
+		try {
+			// This is the object that will be written to Notion
+			// It contains a "property" property, as well as "icon" and "cover"
+			let outputProperties = {
+				"properties": {},
+				"icon": null,
+				"cover": null
+			};
 
-		for (const jsonProperty of CONFIG.propertyMappings) {
-			switch (jsonProperty.notionPropertyType) {
-				case "title":
-				case "rich_text":
-				case "number":
-				case "date":
-				case "url":
-					outputProperties = formatProperty(inputObject, jsonProperty, outputProperties, jsonProperty.notionPropertyType);
-					break;
-				case "multi_select":
-					outputProperties = handleMultiSelectProperty(inputObject, jsonProperty, outputProperties);
-					break;
-				case "cover":
-				case "icon":
-					outputProperties = handlePageIconOrCover(inputObject, jsonProperty, outputProperties, jsonProperty.notionPropertyType);
-					break;
+			for (const jsonProperty of CONFIG.propertyMappings) {
+				switch (jsonProperty.notionPropertyType) {
+					case "title":
+					case "rich_text":
+					case "number":
+					case "date":
+					case "url":
+						outputProperties = formatProperty(inputObject, jsonProperty, outputProperties, jsonProperty.notionPropertyType);
+						break;
+					case "multi_select":
+						outputProperties = handleMultiSelectProperty(inputObject, jsonProperty, outputProperties);
+						break;
+					case "cover":
+					case "icon":
+						outputProperties = handlePageIconOrCover(inputObject, jsonProperty, outputProperties, jsonProperty.notionPropertyType);
+						break;
+				}
 			}
+
+			// Add the extraProperties
+			for (const extraProperty of CONFIG.extraProperties) {
+				outputProperties.properties[extraProperty.notionPropertyName] = addToNotionObject(extraProperty.propertyValue, extraProperty.notionPropertyType);
+			}
+
+			// Create a new page in the database
+			await createNotionPage(outputProperties);
+		} catch (error) {
+			// Push the key of the errored object to the erroredObjects array
+			erroredObjects.push(inputKey);
+			// Push the error message to the errorMessages array
+			errorMessages.push(error);
 		}
 
-		// Add the extraProperties
-		for (const extraProperty of CONFIG.extraProperties) {
-			outputProperties.properties[extraProperty.notionPropertyName] = addToNotionObject(extraProperty.propertyValue, extraProperty.notionPropertyType);
-		}
+		progressBar.increment();
+	}
 
-		// Create a new page in the database
-		createNotionPage(outputProperties);
+	progressBar.stop();
+
+	console.log("Import finished.");
+	if (erroredObjects.length > 0) {
+		console.log("The following objects could not be imported due to either an internal or Notion API error:");
+		console.log(erroredObjects);
+		console.log("The following error messages were returned:");
+		console.log(errorMessages);
 	}
 }
 
@@ -154,10 +184,17 @@ function addToNotionObject(value, type) {
 
 function formatProperty(inputObject, configProperty, outputProperties, propertyType) {
 	// Get the value of the property from the JSON file. If it does not exist, set it to null
-	let value = inputObject[configProperty.jsonKey] || null;
+	let value = inputObject[configProperty.jsonKey] === undefined
+		? null
+		: inputObject[configProperty.jsonKey];
 
 	if (value && typeof value === "object") {
 		value = applyNestedObjectPolicy(inputObject, configProperty);
+	}
+
+	// If the value is of type string, restrictit to a length of 2000 characters
+	if (typeof value === "string") {
+		value = value.slice(0, 2000);
 	}
 
 	// Set the value of the property in the output object

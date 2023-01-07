@@ -1,9 +1,12 @@
-import { Client } from '@notionhq/client';
+import { Client, LogLevel } from '@notionhq/client';
 import { CONFIG } from './utils.js';
 
 // ---------- Notion API ----------
 
-const NOTION = new Client({ auth: CONFIG.notionIntegrationKey });
+const NOTION = new Client({
+	auth: CONFIG.notionIntegrationKey,
+	logLevel: LogLevel.ERROR
+});
 const databaseId = CONFIG.notionDatabaseId;
 
 
@@ -18,9 +21,9 @@ export function updateNotionPage(pageId, properties) {
 	});
 }
 
-export function createNotionPage(properties) {
+export async function createNotionPage(properties) {
 	// Create a new page in the database
-	NOTION.pages.create({
+	await NOTION.pages.create({
 		parent: {
 			database_id: databaseId
 		},
