@@ -107,6 +107,10 @@ async function main() {
 // ----- Nested object policy -----
 
 function applyNestedObjectPolicy(inputObject, configProperty) {
+	if(!configProperty.nestedObjectPolicy) {
+		throw new Error(`No nested object policy specified for property "${configProperty.notionPropertyName}"`);
+	}
+
 	let output = "";
 	let priorityList = null;
 	try {

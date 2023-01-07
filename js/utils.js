@@ -71,7 +71,7 @@ export function writeErroredObjectsToFile(erroredObjects, errorMessages) {
 	const erroredObjectsFromFile = Object.keys(INPUTFILE).filter(key => erroredObjects.includes(key)).reduce((obj, key) => {
 		obj[key] = INPUTFILE[key];
 		// Add the error message to the object
-		obj[key].errorMessage = errorMessages[erroredObjects.indexOf(key)];
+		obj[key].errorMessage = errorMessages[erroredObjects.indexOf(key)].toString();
 		return obj;
 	}, {});
 
