@@ -8,7 +8,7 @@
 			"jsonKey": "keyInJson",
 			"notionPropertyName": "keyInNotion",
 			"notionPropertyType": "rich_text",
-			"nestedPropertyPolicy": {
+			"nestedObjectPolicy": {
 				"policy": "usePriorityList",
 				"priorityList": [
 					"highestPriorityProperty",

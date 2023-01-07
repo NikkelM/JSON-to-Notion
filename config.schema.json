@@ -34,7 +34,7 @@
 					"jsonKey": "keyInJson",
 					"notionPropertyName": "keyInNotion",
 					"notionPropertyType": "rich_text",
-					"nestedPropertyPolicy": "useNamedProperty",
+					"nestedObjectPolicy": "useNamedProperty",
 					"namedProperty": "nameOfNestedProperty"
 				}
 			],
@@ -55,7 +55,7 @@
 						"default": ""
 					},
 					"notionPropertyType": {
-						"description": "The type of the Notion property. Note: Not all property types are supported as of now.",
+						"description": "The type of the Notion property. Note: Not all property types are supported as of now. For \"multi_select\", the input string will be split along \",\" to create multiple entries. Combine this with the \"nestedObjectPolicy\" of \"concatenateProperties\".",
 						"type": "string",
 						"default": "text",
 						"enum": [
@@ -75,7 +75,7 @@
 							"icon"
 						]
 					},
-					"nestedPropertyPolicy": {
+					"nestedObjectPolicy": {
 						"description": "The policy to use when the value to the specified JSON key another JSON object.",
 						"type": "object",
 						"default": {

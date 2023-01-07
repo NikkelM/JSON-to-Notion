@@ -6,10 +6,24 @@ import { CONFIG } from './utils.js';
 const NOTION = new Client({ auth: CONFIG.notionIntegrationKey });
 const databaseId = CONFIG.notionDatabaseId;
 
+
+// Deprecated/unused?
 export function updateNotionPage(pageId, properties) {
 	// Update a page in the database with new info
 	NOTION.pages.update({
 		page_id: pageId,
+		properties: properties.properties,
+		cover: properties.cover,
+		icon: properties.icon
+	});
+}
+
+export function createNotionPage(properties) {
+	// Create a new page in the database
+	NOTION.pages.create({
+		parent: {
+			database_id: databaseId
+		},
 		properties: properties.properties,
 		cover: properties.cover,
 		icon: properties.icon

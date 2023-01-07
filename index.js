@@ -5,7 +5,7 @@
 process.removeAllListeners('warning');
 
 import { CONFIG, INPUTFILE } from './js/utils.js';
-import { checkNotionPropertiesExistence } from './js/notion.js';
+import { checkNotionPropertiesExistence, createNotionPage } from './js/notion.js';
 
 // ---------- Setup ----------
 
@@ -20,8 +20,6 @@ async function main() {
 
 	// run the following for loop for each object in the input file
 	for (const inputObject of INPUTFILE) {
-		console.log(`Importing object ${inputObject}...`);
-
 		let outputProperties = {
 			"properties": {},
 			"icon": null,
@@ -38,26 +36,79 @@ async function main() {
 					break;
 				case "rich_text":
 					outputProperties = await handleTextProperty(inputObject, jsonProperty, outputProperties, false);
+					break;
+				case "multi_select":
+					outputProperties = await handleMultiSelectProperty(inputObject, jsonProperty, outputProperties);
+					break;
 			}
 		}
-		console.log(outputProperties);
+		// console.log(outputProperties);
+
+		// Create a new page in the database
+		createNotionPage(outputProperties);
 	}
 }
 
 // ---------- Property handlers ----------
 
-async function handleTextProperty(inputObject, jsonProperty, outputProperties, isTitle) {
-	// Get the value of the property from the JSON file. If it does not exist, set it to null
-	let value = inputObject[jsonProperty.jsonKey] || null;
+// ----- Nested object policy -----
 
-	// TODO: Logic if value is an object. Use the nestedObjectPolicy policy
+function applyNestedObjectPolicy(inputObject, configProperty) {
+	console.log("Applying nested object policy...");
+	let output = "";
+	let priorityList = null;
+	try {
+		switch (configProperty.nestedObjectPolicy.policy) {
+			case "useNamedProperty":
+				priorityList = [configProperty.nestedObjectPolicy.namedProperty];
+				break;
+			case "concatenateProperties":
+				for (const property of Object.values(inputObject[configProperty.jsonKey])) {
+					output += `${property},`;
+				}
+				output = output.slice(0, -1);
+				return output;
+			case "usePriorityList":
+				priorityList = configProperty.nestedObjectPolicy.priorityList;
+		}
+
+		for (const property of priorityList) {
+			if (inputObject[configProperty.jsonKey]) {
+				output = property;
+				break;
+			}
+		}
+		return output;
+
+	} catch (error) {
+		console.log("Error while applying nested object policy:");
+		console.log(error);
+		console.log("Input object:");
+		console.log(inputObject);
+		console.log("Config property:");
+		console.log(configProperty);
+		process.exit(1);
+	}
+}
+
+// ----- By property type -----
+
+function handleTextProperty(inputObject, configProperty, outputProperties, isTitle) {
+	console.log("Handling rich_text property...");
+
+	// Get the value of the property from the JSON file. If it does not exist, set it to null
+	let value = inputObject[configProperty.jsonKey] || null;
+
+	if (typeof value === "object") {
+		value = applyNestedObjectPolicy(inputObject, configProperty);
+	}
 
 	const propertyType = isTitle
 		? "title"
 		: "rich_text";
 
 	// Set the value of the property in the output object
-	outputProperties.properties[jsonProperty.notionPropertyName] = {
+	outputProperties.properties[configProperty.notionPropertyName] = {
 		[propertyType]: [
 			{
 				"type": "text",
@@ -66,6 +117,31 @@ async function handleTextProperty(inputObject, jsonProperty, outputProperties, i
 				}
 			}
 		]
+	};
+
+	return outputProperties;
+}
+
+function handleMultiSelectProperty(inputObject, configProperty, outputProperties) {
+	console.log("Handling multi_select property...");
+
+	// Get the value of the property from the JSON file. If it does not exist, set it to null
+	let value = inputObject[configProperty.jsonKey] || null;
+
+	if (typeof value === "object") {
+		value = applyNestedObjectPolicy(inputObject, configProperty);
+	}
+
+	// Split the value string into an array of objects using , as delimiter
+	value = value.split(",").map((value) => {
+		return {
+			"name": value
+		}
+	});
+
+	// Set the value of the property in the output object
+	outputProperties.properties[configProperty.notionPropertyName] = {
+		"multi_select": value
 	};
 
 	return outputProperties;
