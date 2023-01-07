@@ -60,3 +60,25 @@ function getInputFile() {
 
 	return INPUTFILE;
 }
+
+// ---------- Error handling ----------
+
+// Write errored objects to file
+export function writeErroredObjectsToFile(erroredObjects, errorMessages) {
+	console.log("\nWriting errored objects to file...");
+
+	// Get all objects from INPUTFILE that have their key in erroredObjects
+	const erroredObjectsFromFile = Object.keys(INPUTFILE).filter(key => erroredObjects.includes(key)).reduce((obj, key) => {
+		obj[key] = INPUTFILE[key];
+		// Add the error message to the object
+		obj[key].errorMessage = errorMessages[erroredObjects.indexOf(key)];
+		return obj;
+	}, {});
+
+	const outputFilename = `${CONFIG.inputFile.split(".json")[0]}_erroredObjects.json`;
+
+	// Write errored objects to file
+	fs.writeFileSync(`${outputFilename}`, JSON.stringify(erroredObjectsFromFile, null, 2));
+
+	console.log(`Wrote errored objects to file "${outputFilename}".`);
+}

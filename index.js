@@ -6,7 +6,7 @@ process.removeAllListeners('warning');
 
 import cliProgress from 'cli-progress';
 
-import { CONFIG, INPUTFILE } from './js/utils.js';
+import { CONFIG, INPUTFILE, writeErroredObjectsToFile } from './js/utils.js';
 import { checkNotionPropertiesExistence, createNotionPage } from './js/notion.js';
 
 // ---------- Setup ----------
@@ -78,12 +78,17 @@ async function main() {
 
 	progressBar.stop();
 
-	console.log("Import finished.");
+	console.log("\nImport finished.\n");
+
 	if (erroredObjects.length > 0) {
-		console.log("The following objects could not be imported due to either an internal or Notion API error:");
+		console.log("The following objects could not be imported due to either an internal or Notion API error:\n");
 		console.log(erroredObjects);
-		console.log("The following error messages were returned:");
+		console.log("\nThe following error messages were returned:\n");
 		console.log(errorMessages);
+
+		if(CONFIG.writeErroredObjectsToFile) {
+			writeErroredObjectsToFile(erroredObjects, errorMessages);
+		}
 	}
 }
 
@@ -192,7 +197,7 @@ function formatProperty(inputObject, configProperty, outputProperties, propertyT
 		value = applyNestedObjectPolicy(inputObject, configProperty);
 	}
 
-	// If the value is of type string, restrictit to a length of 2000 characters
+	// If the value is of type string, restrict it to a length of 2000 characters
 	if (typeof value === "string") {
 		value = value.slice(0, 2000);
 	}

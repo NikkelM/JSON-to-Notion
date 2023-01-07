@@ -3,6 +3,7 @@
 	"notionIntegrationKey": "",
 	"notionDatabaseId": "",
 	"inputFile": "input.json",
+	"writeErroredObjectsToFile": true,
 	"propertyMappings": [
 		{
 			"jsonKey": "keyInJson",
