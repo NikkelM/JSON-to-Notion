@@ -34,7 +34,8 @@
 					"jsonKey": "keyInJson",
 					"notionPropertyName": "keyInNotion",
 					"notionPropertyType": "rich_text",
-					"nestedPropertyPolicy": "useFirstProperty"
+					"nestedObjectPolicy": "useNamedProperty",
+					"namedProperty": "nameOfNestedProperty"
 				}
 			],
 			"minItems": 1,
@@ -54,7 +55,7 @@
 						"default": ""
 					},
 					"notionPropertyType": {
-						"description": "The type of the Notion property. Note: Not all property types are supported as of now.",
+						"description": "The type of the Notion property. Note: Not all property types are supported as of now. For \"multi_select\", the input string will be split along \",\" to create multiple entries. Combine this with the \"nestedObjectPolicy\" of \"concatenateProperties\".",
 						"type": "string",
 						"default": "text",
 						"enum": [
@@ -74,31 +75,37 @@
 							"icon"
 						]
 					},
-					"nestedPropertyPolicy": {
+					"nestedObjectPolicy": {
 						"description": "The policy to use when the value to the specified JSON key another JSON object.",
 						"type": "object",
 						"default": {
 							"policy": "useFirstProperty"
 						},
+						"additionalProperties": false,
 						"properties": {
 							"policy": {
 								"description": "The policy to use when the value to the specified JSON key another JSON object.",
 								"type": "string",
-								"default": "useFirstProperty",
+								"default": "useNamedProperty",
 								"oneOf": [
 									{
-										"const": "useFirstProperty",
-										"title": "Use the value of the first property within the nested property. This property must not be another object."
+										"const": "useNamedProperty",
+										"title": "Use the value of the property with a specific name as defined by the \"namedProperty\" property in the configuration. If the value of this property is another object, the value of the first child property will be used."
 									},
 									{
 										"const": "concatenateProperties",
-										"title": "The values of all properties within the nested property will be concatenated into a single string, with \",\" as a delimiter. This property must not be another object."
+										"title": "The values of all properties within the nested property will be concatenated into a single string, with \",\" as a delimiter. If the value of this property is another object, the value of the first child property will be used."
 									},
 									{
 										"const": "usePriorityList",
-										"title": "Try to use the value of the property with the highest priority as defined by the \"priorityList\" property. If a property with the specified key does not exist, move to the property with the next highest priority. The values of these properties must not be another object."
+										"title": "Try to use the value of the property with the highest priority as defined by the \"priorityList\" property in the configuration. If a property with the specified key does not exist, move to the property with the next highest priority. If no matching property is found, the value is interpreted as \"null\". If the value of the chosen property is another object, the value of the first child property will be used."
 									}
 								]
+							},
+							"namedProperty": {
+								"description": "The name of the property to use when the \"policy\" is set to \"useNamedProperty\".",
+								"type": "string",
+								"default": "namedProperty"
 							},
 							"priorityList": {
 								"description": "The prioritized list of properties to use when the \"policy\" is set to \"usePriorityList\". The script will use the value of the property with the highest priority.",
@@ -124,6 +131,22 @@
 							"required": [
 								"priorityList"
 							]
+						},
+						"else": {
+							"if": {
+								"properties": {
+									"policy": {
+										"enum": [
+											"useNamedProperty"
+										]
+									}
+								}
+							},
+							"then": {
+								"required": [
+									"namedProperty"
+								]
+							}
 						}
 					},
 					"required": [
@@ -139,6 +162,77 @@
 				"inputFile",
 				"inputIsArray",
 				"propertyMappings"
+			]
+		},
+		"extraProperties": {
+			"description": "Extra properties to add to the Notion database. These properties will be added to every row in the database.",
+			"type": "array",
+			"default": [
+				{
+					"notionPropertyName": "Imported by",
+					"propertyValue": "Imported using JSON to Notion",
+					"notionPropertyType": "rich_text"
+				}
+			],
+			"items": {
+				"description": "The column name in Notion and the value that should be added.",
+				"type": "object",
+				"additionalProperties": false,
+				"properties": {
+					"notionPropertyName": {
+						"description": "The Notion property name to map to the JSON key.",
+						"type": "string",
+						"default": ""
+					},
+					"propertyValue": {
+						"description": "The value to add to the Notion property.",
+						"default": ""
+					},
+					"notionPropertyType": {
+						"description": "The type of the Notion property. Note: Not all property types are supported as of now. Unsupported types that may get supported later on: select, status, files, checkbox, email, phone number. If you would like one of these supproted, please open an Issue on the project's Github page.",
+						"type": "string",
+						"default": "text",
+						"oneOf": [
+							{
+								"const": "rich_text",
+								"title": "Default text property. Type string."
+							},
+							{
+								"const": "number",
+								"title": "A simple number. Type number."
+							},
+							{
+								"const": "multi_select",
+								"title": "A multi-select property. The input must be a string with \",\" as the delimiter. Type string."
+							},
+							{
+								"const": "date",
+								"title": "A date. Only start times are supported as of now, and due to Notion's requirements, the date must be in valid ISO 8601 format. Type string."
+							},
+							{
+								"const": "title",
+								"title": "The title property of the field. Type string."
+							},
+							{
+								"const": "url",
+								"title": "A URL. Type string."
+							},
+							{
+								"const": "cover",
+								"title": "A cover. The Notion API only allows external links, so the input must be a URL. Type string."
+							},
+							{
+								"const": "icon",
+								"title": "An icon. The Notion API only allows external links, so the input must be a URL. Type string."
+							}
+						]
+					}
+				}
+			},
+			"required": [
+				"notionPropertyName",
+				"propertyValue",
+				"notionPropertyType"
 			]
 		}
 	}

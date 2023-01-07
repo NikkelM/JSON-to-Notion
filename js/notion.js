@@ -6,6 +6,8 @@ import { CONFIG } from './utils.js';
 const NOTION = new Client({ auth: CONFIG.notionIntegrationKey });
 const databaseId = CONFIG.notionDatabaseId;
 
+
+// Deprecated/unused?
 export function updateNotionPage(pageId, properties) {
 	// Update a page in the database with new info
 	NOTION.pages.update({
@@ -16,15 +18,35 @@ export function updateNotionPage(pageId, properties) {
 	});
 }
 
+export function createNotionPage(properties) {
+	// Create a new page in the database
+	NOTION.pages.create({
+		parent: {
+			database_id: databaseId
+		},
+		properties: properties.properties,
+		cover: properties.cover,
+		icon: properties.icon
+	});
+}
+
 // Sends a simple request to the database to check if all properties exist in the database
 export async function checkNotionPropertiesExistence() {
+	// We don't need to validate these properties, as they always exist
+	const alwaysValidProperties = [
+		"cover",
+		"icon"
+	];
+
 	// Get a list of all fields that must exist in the Notion database
 	let properties = [];
 	for (const propertyMapping of CONFIG.propertyMappings) {
-		properties.push({
-			"notionPropertyName": propertyMapping.notionPropertyName,
-			"notionPropertyType": propertyMapping.notionPropertyType
-		});
+		if (!alwaysValidProperties.includes(propertyMapping.notionPropertyType)) {
+			properties.push({
+				"notionPropertyName": propertyMapping.notionPropertyName,
+				"notionPropertyType": propertyMapping.notionPropertyType
+			});
+		}
 	}
 
 	const response = await NOTION.databases.retrieve({

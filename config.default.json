@@ -8,9 +8,20 @@
 			"jsonKey": "keyInJson",
 			"notionPropertyName": "keyInNotion",
 			"notionPropertyType": "rich_text",
-			"nestedPropertyPolicy": {
-				"policy": "useFirstProperty"
+			"nestedObjectPolicy": {
+				"policy": "usePriorityList",
+				"priorityList": [
+					"highestPriorityProperty",
+					"secondHighestPriorityProperty"
+				]
 			}
+		}
+	],
+	"extraProperties": [
+		{
+			"notionPropertyName": "Imported by",
+			"propertyValue": "Imported using JSON to Notion",
+			"notionPropertyType": "rich_text"
 		}
 	]
 }
