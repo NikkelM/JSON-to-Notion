@@ -115,7 +115,7 @@ function applyNestedObjectPolicy(inputObject, configProperty) {
 		}
 
 		for (const property of priorityList) {
-			if (inputObject[configProperty.jsonKey][property]) {
+			if (inputObject[configProperty.jsonKey][property] !== undefined) {
 				output = inputObject[configProperty.jsonKey][property];
 				// If output is of type object, use the first value
 				if (typeof output === "object") {
