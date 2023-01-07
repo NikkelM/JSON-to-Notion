@@ -19,7 +19,7 @@ main();
 
 async function main() {
 	console.log("Starting import...");
-			
+
 	const progressBar = new cliProgress.SingleBar({
 		hideCursor: true,
 		format: '|{bar}| {percentage}% | {eta}s left | {value}/{total} objects imported'
@@ -61,7 +61,7 @@ async function main() {
 		}
 
 		// Create a new page in the database
-		createNotionPage(outputProperties);
+		await createNotionPage(outputProperties);
 
 		progressBar.increment();
 	}
@@ -92,7 +92,7 @@ function applyNestedObjectPolicy(inputObject, configProperty) {
 		}
 
 		for (const property of priorityList) {
-			if (inputObject[configProperty.jsonKey][property]) {
+			if (inputObject[configProperty.jsonKey][property] !== undefined) {
 				output = inputObject[configProperty.jsonKey][property];
 				// If output is of type object, use the first value
 				if (typeof output === "object") {
@@ -166,7 +166,9 @@ function addToNotionObject(value, type) {
 
 function formatProperty(inputObject, configProperty, outputProperties, propertyType) {
 	// Get the value of the property from the JSON file. If it does not exist, set it to null
-	let value = inputObject[configProperty.jsonKey] || null;
+	let value = inputObject[configProperty.jsonKey] === undefined
+		? null
+		: inputObject[configProperty.jsonKey];
 
 	if (value && typeof value === "object") {
 		value = applyNestedObjectPolicy(inputObject, configProperty);

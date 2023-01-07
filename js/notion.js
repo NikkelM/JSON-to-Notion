@@ -18,9 +18,9 @@ export function updateNotionPage(pageId, properties) {
 	});
 }
 
-export function createNotionPage(properties) {
+export async function createNotionPage(properties) {
 	// Create a new page in the database
-	NOTION.pages.create({
+	await NOTION.pages.create({
 		parent: {
 			database_id: databaseId
 		},
