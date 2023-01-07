@@ -34,7 +34,8 @@
 					"jsonKey": "keyInJson",
 					"notionPropertyName": "keyInNotion",
 					"notionPropertyType": "rich_text",
-					"nestedPropertyPolicy": "useFirstProperty"
+					"nestedPropertyPolicy": "useNamedProperty",
+					"namedProperty": "nameOfNestedProperty"
 				}
 			],
 			"minItems": 1,
@@ -161,6 +162,64 @@
 				"inputFile",
 				"inputIsArray",
 				"propertyMappings"
+			]
+		},
+		"extraProperties": {
+			"description": "Extra properties to add to the Notion database. These properties will be added to every row in the database.",
+			"type": "array",
+			"default": [
+				{
+					"notionPropertyName": "Imported by",
+					"propertyValue": "Imported using JSON to Notion",
+					"notionPropertyType": "rich_text"
+				}
+			],
+			"items": {
+				"description": "The column name in Notion and the value that should be added.",
+				"type": "object",
+				"additionalProperties": false,
+				"properties": {
+					"notionPropertyName": {
+						"description": "The Notion property name to map to the JSON key.",
+						"type": "string",
+						"default": ""
+					},
+					"propertyValue": {
+						"description": "The value to add to the Notion property.",
+						"type": [
+							"string",
+							"number",
+							"boolean"
+						],
+						"default": ""
+					},
+					"notionPropertyType": {
+						"description": "The type of the Notion property. Note: Not all property types are supported as of now.",
+						"type": "string",
+						"default": "text",
+						"enum": [
+							"rich_text",
+							"number",
+							"select",
+							"multi_select",
+							"status",
+							"date",
+							"title",
+							"files",
+							"checkbox",
+							"url",
+							"email",
+							"phone_number",
+							"cover",
+							"icon"
+						]
+					}
+				}
+			},
+			"required": [
+				"notionPropertyName",
+				"propertyValue",
+				"notionPropertyType"
 			]
 		}
 	}

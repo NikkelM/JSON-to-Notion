@@ -16,5 +16,12 @@
 				]
 			}
 		}
+	],
+	"extraProperties": [
+		{
+			"notionPropertyName": "Imported by",
+			"propertyValue": "Imported using JSON to Notion",
+			"notionPropertyType": "rich_text"
+		}
 	]
 }
