@@ -40,6 +40,10 @@ async function main() {
 				case "multi_select":
 					outputProperties = handleMultiSelectProperty(inputObject, jsonProperty, outputProperties);
 					break;
+				case "cover":
+				case "icon":
+					outputProperties = handlePageIconOrCover(inputObject, jsonProperty, outputProperties, jsonProperty.notionPropertyType);
+					break;
 			}
 		}
 
@@ -80,6 +84,10 @@ function applyNestedObjectPolicy(inputObject, configProperty) {
 		for (const property of priorityList) {
 			if (inputObject[configProperty.jsonKey][property]) {
 				output = inputObject[configProperty.jsonKey][property];
+				// If output is of type object, use the first value
+				if (typeof output === "object") {
+					output = Object.values(output)[0];
+				}
 				break;
 			}
 		}
@@ -160,6 +168,7 @@ function formatProperty(inputObject, configProperty, outputProperties, propertyT
 	return outputProperties;
 }
 
+// As multi_select gets interpreted from a string, it needs to be handled separately
 function handleMultiSelectProperty(inputObject, configProperty, outputProperties) {
 	// Get the value of the property from the JSON file. If it does not exist, set it to null
 	let value = inputObject[configProperty.jsonKey] || null;
@@ -177,6 +186,25 @@ function handleMultiSelectProperty(inputObject, configProperty, outputProperties
 
 	// Set the value of the property in the output object
 	outputProperties.properties[configProperty.notionPropertyName] = addToNotionObject(value, "multi_select");
+
+	return outputProperties;
+}
+
+function handlePageIconOrCover(inputObject, configProperty, outputProperties, propertyType) {
+	// Get the value of the property from the JSON file. If it does not exist, set it to null
+	let value = inputObject[configProperty.jsonKey] || null;
+
+	if (value && typeof value === "object") {
+		value = applyNestedObjectPolicy(inputObject, configProperty);
+	}
+
+	// Set the value of the property in the output object
+	outputProperties[propertyType] = {
+		"type": "external",
+		"external": {
+			"url": value
+		}
+	};
 
 	return outputProperties;
 }
