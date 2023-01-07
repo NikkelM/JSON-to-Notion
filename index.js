@@ -54,7 +54,7 @@ async function main() {
 		console.log(outputProperties);
 
 		// Create a new page in the database
-		createNotionPage(outputProperties);
+		// createNotionPage(outputProperties);
 	}
 }
 

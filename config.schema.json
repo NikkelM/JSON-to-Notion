@@ -189,22 +189,16 @@
 						"default": ""
 					},
 					"notionPropertyType": {
-						"description": "The type of the Notion property. Note: Not all property types are supported as of now.",
+						"description": "The type of the Notion property. Note: Not all property types are supported as of now. Unsupported types that may get supported later on: select, status, files, checkbox, email, phone number. If you would like one of these supproted, please open an Issue on the project's Github page.",
 						"type": "string",
 						"default": "text",
 						"enum": [
 							"rich_text",
 							"number",
-							"select",
 							"multi_select",
-							"status",
 							"date",
 							"title",
-							"files",
-							"checkbox",
 							"url",
-							"email",
-							"phone_number",
 							"cover",
 							"icon"
 						]
