@@ -37,6 +37,9 @@ async function main() {
 				case "rich_text":
 					outputProperties = handleTextProperty(inputObject, jsonProperty, outputProperties, false);
 					break;
+				case "number":
+					outputProperties = handleNumberProperty(inputObject, jsonProperty, outputProperties);
+					break;
 				case "multi_select":
 					outputProperties = handleMultiSelectProperty(inputObject, jsonProperty, outputProperties);
 					break;
@@ -45,9 +48,9 @@ async function main() {
 
 		// Add the extraProperties
 		for (const extraProperty of CONFIG.extraProperties) {
-			console.log(extraProperty)
 			outputProperties.properties[extraProperty.notionPropertyName] = addToNotionObject(extraProperty.propertyValue, extraProperty.notionPropertyType);
 		}
+
 		console.log(outputProperties);
 
 		// Create a new page in the database
@@ -65,7 +68,7 @@ function applyNestedObjectPolicy(inputObject, configProperty) {
 	try {
 		switch (configProperty.nestedObjectPolicy.policy) {
 			case "useNamedProperty":
-				priorityList = [configProperty.nestedObjectPolicy.namedProperty];
+				priorityList = [[configProperty.nestedObjectPolicy.namedProperty]];
 				break;
 			case "concatenateProperties":
 				for (const property of Object.values(inputObject[configProperty.jsonKey])) {
@@ -78,8 +81,8 @@ function applyNestedObjectPolicy(inputObject, configProperty) {
 		}
 
 		for (const property of priorityList) {
-			if (inputObject[configProperty.jsonKey]) {
-				output = property;
+			if (inputObject[configProperty.jsonKey][property]) {
+				output = inputObject[configProperty.jsonKey][property];
 				break;
 			}
 		}
@@ -123,6 +126,10 @@ function addToNotionObject(value, type) {
 					}
 				]
 			};
+		case "number":
+			return {
+				"number": value
+			};
 		case "multi_select":
 			return {
 				"multi_select": value
@@ -153,16 +160,23 @@ function handleTextProperty(inputObject, configProperty, outputProperties, isTit
 		: "rich_text";
 
 	// Set the value of the property in the output object
-	outputProperties.properties[configProperty.notionPropertyName] = {
-		[propertyType]: [
-			{
-				"type": "text",
-				"text": {
-					"content": value
-				}
-			}
-		]
-	};
+	outputProperties.properties[configProperty.notionPropertyName] = addToNotionObject(value, propertyType);
+
+	return outputProperties;
+}
+
+function handleNumberProperty(inputObject, configProperty, outputProperties) {
+	console.log("Handling number property...");
+
+	// Get the value of the property from the JSON file. If it does not exist, set it to null
+	let value = inputObject[configProperty.jsonKey] || null;
+
+	if (typeof value === "object") {
+		value = applyNestedObjectPolicy(inputObject, configProperty);
+	}
+
+	// Set the value of the property in the output object
+	outputProperties.properties[configProperty.notionPropertyName] = addToNotionObject(value, "number");
 
 	return outputProperties;
 }
@@ -185,9 +199,7 @@ function handleMultiSelectProperty(inputObject, configProperty, outputProperties
 	});
 
 	// Set the value of the property in the output object
-	outputProperties.properties[configProperty.notionPropertyName] = {
-		"multi_select": value
-	};
+	outputProperties.properties[configProperty.notionPropertyName] = addToNotionObject(value, "multi_select");
 
 	return outputProperties;
 }
