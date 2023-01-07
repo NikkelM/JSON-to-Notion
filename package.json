@@ -6,6 +6,7 @@
 	"main": "index.js",
 	"dependencies": {
 		"@notionhq/client": "^1.0.1",
+		"cli-progress": "^3.11.2",
 		"jsonschema": "^1.4.1"
 	}
 }

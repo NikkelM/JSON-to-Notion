@@ -4,6 +4,8 @@
 // Suppresses the warning about the fetch API being unstable
 process.removeAllListeners('warning');
 
+import cliProgress from 'cli-progress';
+
 import { CONFIG, INPUTFILE } from './js/utils.js';
 import { checkNotionPropertiesExistence, createNotionPage } from './js/notion.js';
 
@@ -17,6 +19,12 @@ main();
 
 async function main() {
 	console.log("Starting import...");
+			
+	const progressBar = new cliProgress.SingleBar({
+		hideCursor: true,
+		format: '|{bar}| {percentage}% | {eta}s left | {value}/{total} objects imported'
+	}, cliProgress.Presets.legacy);
+	progressBar.start(Object.keys(INPUTFILE).length, 0);
 
 	// run the following for loop for each object in the input file
 	for (const inputObject of INPUTFILE) {
@@ -54,7 +62,11 @@ async function main() {
 
 		// Create a new page in the database
 		createNotionPage(outputProperties);
+
+		progressBar.increment();
 	}
+
+	progressBar.stop();
 }
 
 // ---------- Property handlers ----------
