@@ -58,7 +58,7 @@ jobs:
       - name: Create .zip of required files 
         run: |
           cd release_files
-          zip -r ../Advanced.JSON.To.CSV.zip *
+          zip -r ../JSON.to.Notion.zip *
 
       - name: Create Release notes
         run: |
@@ -75,5 +75,5 @@ jobs:
         with:
           tag_name: v${{ needs.CheckVersion.outputs.newVersion }}
           name: v${{ needs.CheckVersion.outputs.newVersion }}
-          files: Advanced.JSON.To.CSV.zip
+          files: JSON.to.Notion.zip
           body_path: CHANGELOG.md
