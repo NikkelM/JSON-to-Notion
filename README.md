@@ -16,6 +16,12 @@ Run `npm install` to install the required dependencies first.
 
 Following this, create a `config.json` file in the root directory of the project and fill it with your desired [configuration](#configuration).
 
+If you haven't already done so, you can obtain a Notion integration key by creating an (internal) Notion integration for your workspace.
+You can follow [this guide](https://developers.notion.com/docs/create-a-notion-integration) to learn how to do so.
+You will need this key to run the integration locally.
+
+**IMPORTANT: Don't forget to connect the integration to your database, as described in the guide! Otherwise, the import won't work.**
+
 ## Usage
 
 After providing the `config.json` [configuration](#configuration) file, you can run the script using
