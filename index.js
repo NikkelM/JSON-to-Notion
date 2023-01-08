@@ -18,22 +18,23 @@ await checkNotionPropertiesExistence();
 main();
 
 async function main() {
-	let objectsToSkip = [];
-	let numObjectsSkipped = 0;
 	if (CONFIG.skipExisting?.enabled) {
-		console.log("Skipping existing objects, querying database...");
+		var objectsToSkip = [];
+		var numObjectsSkipped = 0;
+		console.log("Skipping existing objects is enabled, querying database...");
 		objectsToSkip = await getPagesToSkipFromNotionDatabase();
 	}
 
-	console.log("Importing objects...");
+	console.log("Importing objects to Notion...");
 
 	let erroredObjects = [];
 	let errorMessages = [];
 
 	const progressBar = new cliProgress.SingleBar({
 		hideCursor: true,
-		format: '|{bar}| {percentage}% | {eta}s left | {value}/{total} objects imported'
+		format: '|{bar}| {percentage}% | {eta}s left | {value}/{total} objects imported or skipped'
 	}, cliProgress.Presets.legacy);
+
 	progressBar.start(Object.keys(INPUTFILE).length, 0);
 
 	// run the following for loop for each object in the input file
