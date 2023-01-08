@@ -40,6 +40,24 @@ export async function checkNotionPropertiesExistence() {
 		}
 	}
 
+	// Add the field that is used to check for duplicates
+	if (CONFIG.skipExisting?.enabled) {
+		properties.push({
+			"notionPropertyName": CONFIG.skipExisting.notionProperty,
+			"notionPropertyType": CONFIG.skipExisting.propertyType
+		});
+	}
+
+	// Add all properties defined in extraProperties
+	if (CONFIG.extraProperties) {
+		for (const property of CONFIG.extraProperties) {
+			properties.push({
+				"notionPropertyName": property.notionPropertyName,
+				"notionPropertyType": property.notionPropertyType
+			});
+		}
+	}
+
 	const response = await NOTION.databases.retrieve({
 		database_id: databaseId
 	});
