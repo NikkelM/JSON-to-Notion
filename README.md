@@ -4,12 +4,6 @@
 
 Utility that is able to "import" JSON files to Notion - for cases where a CSV file is simply not available, and the conversion from JSON to CSV would be too complicated.
 
-## Related projects
-
-If you are using Notion to organize your Steam game library, you might be interested in the [Notion Steam API integration](https://github.com/NikkelM/Notion-Steam-API-Integration) project, an integration that automatically retrieves information for Notion entries that contain a Steam App ID.
-
-Similarly, you can use the [Game Pass API](https://github.com/NikkelM/Game-Pass-API) to retrieve information about all games currently available on Game Pass, and then import that information using this tool.
-
 ## Setup 
 
 Run `npm install` to install the required dependencies first.
@@ -299,3 +293,12 @@ The prioritized list of properties to use when the `policy` is set to `usePriori
 ```
 </details>
 
+## Related projects
+
+If you are using Notion to organize your Steam game library, you might be interested in the [Notion Steam API integration](https://github.com/NikkelM/Notion-Steam-API-Integration) project, an integration that automatically retrieves information for Notion entries that contain a Steam App ID.
+
+Similarly, you can use the [Game Pass API](https://github.com/NikkelM/Game-Pass-API) to retrieve information about all games currently available on Game Pass, and then import that information using this tool.
+
+## Feedback
+
+If you have any question, feedback or feature requests, feel free to open an [issue](https://github.com/NikkelM/JSON-to-Notion/issues/new).
