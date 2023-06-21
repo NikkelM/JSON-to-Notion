@@ -21,6 +21,13 @@ export async function createNotionPage(properties) {
 	});
 }
 
+export async function removeNotionPage(pageId) {
+	await NOTION.pages.update({
+		page_id: pageId,
+		archived: true
+	});
+}
+
 // Sends a simple request to the database to check if all properties exist in the database
 export async function checkNotionPropertiesExistence() {
 	// We don't need to validate these properties, as they always exist
@@ -48,6 +55,20 @@ export async function checkNotionPropertiesExistence() {
 		});
 	}
 
+	// Add the field that is used for the missingInInputPolicy
+	if (CONFIG.missingInInputPolicy && CONFIG.missingInInputPolicy.policy !== "noAction") {
+		properties.push({
+			"notionPropertyName": CONFIG.missingInInputPolicy.notionProperty,
+			"notionPropertyType": CONFIG.missingInInputPolicy.propertyType
+		});
+		if (CONFIG.missingInInputPolicy.alertedNotionProperty) {
+			properties.push({
+				"notionPropertyName": CONFIG.missingInInputPolicy.alertedNotionProperty,
+				"notionPropertyType": CONFIG.missingInInputPolicy.alertedPropertyType
+			});
+		}
+	}
+
 	// Add all properties defined in extraProperties
 	if (CONFIG.extraProperties) {
 		for (const property of CONFIG.extraProperties) {
@@ -73,29 +94,80 @@ export async function checkNotionPropertiesExistence() {
 
 // ---------- Duplicate check/Database query ----------
 
-// Get a list of pages in the Notion database that have the `CONFIG.skipExisting.notionProperty` field set 
-export async function getPagesToSkipFromNotionDatabase() {
+// Get a list of pages in the Notion database that have the `CONFIG.skipExisting.notionProperty` field or the `CONFIG.missingInInputPolicy.notionProperty` field set to anything but null 
+export async function getExistingPagesFromNotionDatabase() {
 	const pages = [];
+	let newPage = {};
 
 	async function getPages(cursor) {
 		// While there are more pages left in the query, get pages from the database. 
 		const currentPages = await queryDatabase(cursor);
 
 		currentPages.results.forEach(page => {
-			switch (CONFIG.skipExisting.propertyType) {
-				case "title":
-				case "rich_text":
-					pages.push(page.properties[CONFIG.skipExisting.notionProperty][CONFIG.skipExisting.propertyType][0].plain_text);
-					break;
-				case "number":
-					pages.push(page.properties[CONFIG.skipExisting.notionProperty].number);
-					break;
-				case "select":
-					pages.push(page.properties[CONFIG.skipExisting.notionProperty].select.name);
-					break;
-				case "url":
-					pages.push(page.properties[CONFIG.skipExisting.notionProperty].url);
+			// Create a new object
+			newPage = {
+				"pageId": page.id,
+				"skippedPropertyValue": null,
+				"missingPropertyValue": null,
+				"alertedPropertyValue": null
+			};
+
+			// Add the properties for the skipped objects
+			if (CONFIG.skipExisting?.enabled) {
+				switch (CONFIG.skipExisting.propertyType) {
+					case "title":
+					case "rich_text":
+						newPage.skippedPropertyValue = page.properties[CONFIG.skipExisting.notionProperty][CONFIG.skipExisting.propertyType][0].plain_text;
+						break;
+					case "number":
+						newPage.skippedPropertyValue = page.properties[CONFIG.skipExisting.notionProperty].number;
+						break;
+					case "select":
+						newPage.skippedPropertyValue = page.properties[CONFIG.skipExisting.notionProperty].select.name;
+						break;
+					case "url":
+						newPage.skippedPropertyValue = page.properties[CONFIG.skipExisting.notionProperty].url;
+				}
 			}
+
+			// Add the properties for the alerted objects
+			if (CONFIG.missingInInputPolicy && CONFIG.missingInInputPolicy.policy !== "noAction") {
+				// If a separate property is used for alerting, also add it to the object
+				if (CONFIG.missingInInputPolicy.alertedNotionProperty) {
+					switch (CONFIG.missingInInputPolicy.alertedPropertyType) {
+						case "title":
+						case "rich_text":
+							newPage.alertedPropertyValue = page.properties[CONFIG.missingInInputPolicy.alertedNotionProperty][CONFIG.missingInInputPolicy.alertedPropertyType][0].plain_text;
+							break;
+						case "number":
+							newPage.alertedPropertyValue = page.properties[CONFIG.missingInInputPolicy.alertedNotionProperty].number;
+							break;
+						case "select":
+							newPage.alertedPropertyValue = page.properties[CONFIG.missingInInputPolicy.alertedNotionProperty].select.name;
+							break;
+						case "url":
+							newPage.alertedPropertyValue = page.properties[CONFIG.missingInInputPolicy.alertedNotionProperty].url;
+					}
+				}
+
+				// Always add the 'missing' property
+				switch (CONFIG.missingInInputPolicy.propertyType) {
+					case "title":
+					case "rich_text":
+						newPage.missingPropertyValue = page.properties[CONFIG.missingInInputPolicy.notionProperty][CONFIG.missingInInputPolicy.propertyType][0].plain_text;
+						break;
+					case "number":
+						newPage.missingPropertyValue = page.properties[CONFIG.missingInInputPolicy.notionProperty].number;
+						break;
+					case "select":
+						newPage.missingPropertyValue = page.properties[CONFIG.missingInInputPolicy.notionProperty].select.name;
+						break;
+					case "url":
+						newPage.missingPropertyValue = page.properties[CONFIG.missingInInputPolicy.notionProperty].url;
+				}
+			}
+
+			pages.push(newPage);
 		});
 
 		if (currentPages.has_more) {

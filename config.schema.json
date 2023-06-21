@@ -27,7 +27,7 @@
 			"pattern": ".*.json"
 		},
 		"skipExisting": {
-			"description": "Whether to skip existing entries in the database. If set to true, the script will only import entries that do not exist in the database yet.",
+			"description": "Whether to skip already existing entries in the database. If set to true, the script will only import entries that do not exist in the database yet.",
 			"type": "object",
 			"additionalProperties": false,
 			"default": {
@@ -67,6 +67,88 @@
 			},
 			"required": [
 				"enabled",
+				"jsonKey",
+				"notionProperty",
+				"propertyType"
+			]
+		},
+		"missingInInputPolicy": {
+			"description": "Decide what to do with entries in the database that have the given notionProperty set, but do not exist in the input file (i.e., an updated dataset no longer contains this entry). If this key is omitted, no action is taken and such entries are ignored.",
+			"type": "object",
+			"additionalProperties": false,
+			"default": {
+				"policy": "noAction",
+				"jsonKey": "keyInJSON",
+				"notionProperty": "ItemId",
+				"propertyType": "number",
+				"alertedNotionProperty": "ItemName",
+				"alertedPropertyType": "title"
+			},
+			"properties": {
+				"policy": {
+					"description": "The action to take when an entry exists in the database whose notionProperty value does not exist in the input file.",
+					"type": "string",
+					"default": "noAction",
+					"oneOf": [
+						{
+							"const": "noAction",
+							"title": "Do nothing. Has the same behaviour as if the \"missingInInputPolicy\" key was omitted."
+						},
+						{
+							"const": "alert",
+							"title": "The given alertedNotionProperty of all entries that exist in the database but not in the input file will be logged to a file. If no alertedNotionProperty is given, the notionProperty is used."
+						},
+						{
+							"const": "remove",
+							"title": "All entries in the database that do not have a matching entry in the input file will be removed from the database, and the alertedNotionProperty is logged to a file. Please note that Notion only supports archiving pages using the API. You can restore such pages for a limited amount of time."
+						}
+					]
+				},
+				"jsonKey": {
+					"description": "The key in the JSON input that should be compared to the value of the \"notionProperty\".",
+					"type": "string",
+					"default": "keyInJSON"
+				},
+				"notionProperty": {
+					"description": "The name of the field in the Notion database that should be compared to the value of the \"jsonKey\".",
+					"type": "string",
+					"default": "ItemID"
+				},
+				"propertyType": {
+					"description": "The type of the property used for checking if an entry already exists in the database. Not all property types are supported.",
+					"type": "string",
+					"default": "rich_text",
+					"enum": [
+						"rich_text",
+						"title",
+						"number",
+						"select",
+						"url"
+					]
+				},
+				"alertedNotionProperty": {
+					"description": "The name of the field in the Notion database that should be used for logging objects missing in the input file.",
+					"type": "string",
+					"default": "ItemID"
+				},
+				"alertedPropertyType": {
+					"description": "The type of the property used for the logging. Not all property types are supported.",
+					"type": "string",
+					"default": "rich_text",
+					"enum": [
+						"rich_text",
+						"title",
+						"number",
+						"select",
+						"url"
+					]
+				}
+			},
+			"dependentRequired": {
+			  "alertedNotionProperty": ["alertedPropertyType"]
+			},
+			"required": [
+				"policy",
 				"jsonKey",
 				"notionProperty",
 				"propertyType"
@@ -280,5 +362,11 @@
 				"notionPropertyType"
 			]
 		}
-	}
+	},
+	"required": [
+		"notionIntegrationKey",
+		"notionDatabaseId",
+		"inputFile",
+		"propertyMappings"
+	]
 }

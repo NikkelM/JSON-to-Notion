@@ -9,6 +9,14 @@
 		"notionProperty": "ItemId",
 		"propertyType": "number"
 	},
+	"missingInInputPolicy": {
+		"policy": "noAction",
+		"jsonKey": "keyInJSON",
+		"notionProperty": "ItemId",
+		"propertyType": "number",
+		"alertedNotionProperty": "ItemName",
+		"alertedPropertyType": "title"
+	},
 	"writeErroredObjectsToFile": true,
 	"propertyMappings": [
 		{
