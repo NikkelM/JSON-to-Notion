@@ -55,19 +55,21 @@ async function main() {
 
 		console.log(`\nFound ${numObjectsMissingInInput} objects in the database that are not in the input file.`);
 
-		switch (CONFIG.missingInInputPolicy.policy) {
-			case "remove":
-				console.log("Removing objects missing in the inpout file from the database...");
-				for (const page of pagesMissingInInput) {
-					await removeNotionPage(page.pageId);
-				}
-				break;
-			case "alert":
-				const alertedPropertiesOnly = pagesMissingInInput.map(object => object.alertedPropertyValue ?? object.missingPropertyValue);
-				writeObjectsMissingInInputToFile(alertedPropertiesOnly);
-				break;
-			default:
-				console.log(`The "${CONFIG.missingInInputPolicy.policy}" policy is not supported.`);
+		if (numObjectsMissingInInput > 0) {
+			switch (CONFIG.missingInInputPolicy.policy) {
+				case "remove":
+					console.log("Removing objects missing in the inpout file from the database...");
+					for (const page of pagesMissingInInput) {
+						await removeNotionPage(page.pageId);
+					}
+				// No break, as we also want to alert those objects
+				case "alert":
+					const alertedPropertiesOnly = pagesMissingInInput.map(object => object.alertedPropertyValue ?? object.missingPropertyValue);
+					writeObjectsMissingInInputToFile(alertedPropertiesOnly);
+					break;
+				default:
+					console.log(`The "${CONFIG.missingInInputPolicy.policy}" policy is not supported.`);
+			}
 		}
 	}
 
