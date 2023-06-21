@@ -129,12 +129,12 @@
 				"alertedNotionProperty": {
 					"description": "The name of the field in the Notion database that should be used for logging objects missing in the input file.",
 					"type": "string",
-					"default": "ItemID"
+					"default": "ItemName"
 				},
 				"alertedPropertyType": {
 					"description": "The type of the property used for the logging. Not all property types are supported.",
 					"type": "string",
-					"default": "rich_text",
+					"default": "title",
 					"enum": [
 						"rich_text",
 						"title",
