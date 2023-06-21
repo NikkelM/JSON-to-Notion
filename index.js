@@ -154,6 +154,8 @@ async function main() {
 			writeErroredObjectsToFile(erroredObjects, errorMessages);
 		}
 	}
+
+	console.log("\nDid you find this tool useful? Buy me a coffee at https://ko-fi.com/nikkelm");
 }
 
 // ---------- Property handlers ----------
