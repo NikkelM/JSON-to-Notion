@@ -1,8 +1,12 @@
 {
 	"name": "json-to-notion",
 	"type": "module",
-	"version": "1.1.1",
+	"version": "1.2.0",
 	"description": "Utility that is able to \"import\" JSON files to Notion - for cases where a CSV file is simply not available, and the conversion from JSON to CSV would be too complicated.",
+	"author": {
+		"name": "Nikkel Mollenhauer",
+		"email": "nikkelm.dev@gmail.com"
+	},
 	"main": "index.js",
 	"dependencies": {
 		"@notionhq/client": "^1.0.1",
