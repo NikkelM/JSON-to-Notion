@@ -124,10 +124,84 @@ The name of the field in the Notion database that should be compared to the valu
 <h4><code>propertyType</code></h4>
 
 The type of the property in the Notion database that should be compared to the value of the `jsonKey`.
+Not all property types are supported.
 
 | Type | Default value | Possible values | Required |
 | --- | --- | --- | --- |
 | `string` | `"rich_text"` | `"rich_text"`,	`"title"`, `"number"`, `"select"` or `"url"` | Yes |
+</details>
+
+<details>
+<summary><code>missingInInputPolicy</code></summary>
+
+Decide what to do with entries in the database that have the given notionProperty set, but do not exist in the input file (i.e., an updated dataset no longer contains this entry). If this key is omitted, no action is taken and such entries are ignored.
+
+| Type | Default value | Possible values | Required |
+| --- | --- | --- | --- |
+| `object` | See item below | See sections below | No |
+
+```json
+{
+	"policy": "noAction",
+	"jsonKey": "keyInJSON",
+	"notionProperty": "ItemId",
+	"propertyType": "number",
+	"alertedNotionProperty": "ItemName",
+	"alertedPropertyType": "title"
+}
+```
+
+<h3>Possible values</h3>
+
+<h4><code>policy</code></h4>
+
+The action to take when an entry exists in the database whose notionProperty value does not exist in the input file.
+
+| Type | Default value | Possible values | Required |
+| --- | --- | --- | --- |
+| `string` | `noAction` | `noAction`, `alert` or `remove` | Yes |
+
+<h4><code>jsonKey</code></h4>
+
+The key in the JSON input that should be compared to the value of the `notionProperty`.
+
+| Type | Default value | Possible values | Required |
+| --- | --- | --- | --- |
+| `string` | `"keyInJSON"` | A key that exists in the items of the input file | Yes |
+
+<h4><code>notionProperty</code></h4>
+
+The name of the field in the Notion database that should be compared to the value of the `jsonKey`.
+
+| Type | Default value | Possible values | Required |
+| --- | --- | --- | --- |
+| `string` | `"ItemId"` | An existing Notion property name | Yes |
+
+<h4><code>propertyType</code></h4>
+
+The type of the property in the Notion database that should be compared to the value of the `jsonKey`.
+Not all property types are supported.
+
+| Type | Default value | Possible values | Required |
+| --- | --- | --- | --- |
+| `string` | `"rich_text"` | `"rich_text"`,	`"title"`, `"number"`, `"select"` or `"url"` | Yes |
+
+<h4><code>alertedNotionProperty</code></h4>
+
+The name of the field in the Notion database that should be used for logging objects missing in the input file.
+
+| Type | Default value | Possible values | Required |
+| --- | --- | --- | --- |
+| `string` | `"ItemName"` | An existing Notion property name | No |
+
+<h4><code>alertedPropertyType</code></h4>
+
+The type of the property used for the logging.
+Not all property types are supported.
+
+| Type | Default value | Possible values | Required |
+| --- | --- | --- | --- |
+| `string` | `"title"` | `"rich_text"`,	`"title"`, `"number"`, `"select"` or `"url"` | Yes, if `alertedNotionProperty` is set |
 </details>
 
 <details>

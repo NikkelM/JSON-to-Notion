@@ -6,26 +6,74 @@ process.removeAllListeners('warning');
 
 import cliProgress from 'cli-progress';
 
-import { CONFIG, INPUTFILE, writeErroredObjectsToFile } from './js/utils.js';
-import { checkNotionPropertiesExistence, createNotionPage, getPagesToSkipFromNotionDatabase } from './js/notion.js';
+import { CONFIG, INPUTFILE, writeErroredObjectsToFile, writeObjectsMissingInInputToFile } from './js/utils.js';
+import { checkNotionPropertiesExistence, createNotionPage, removeNotionPage, getExistingPagesFromNotionDatabase } from './js/notion.js';
 
 // ---------- Setup ----------
-
-// We need to do this here because of circular imports
-// TODO: Is this still true?
 await checkNotionPropertiesExistence();
 
 main();
 
 async function main() {
+	let shouldGetPagesInDB = false;
+	let objectsAlreadyInDB = [];
+
+	// If we should skip existing objects, get a list of all objects with the given notionProperty set to some value, these will be skipped later on
 	if (CONFIG.skipExisting?.enabled) {
-		var objectsToSkip = [];
+		shouldGetPagesInDB = true;
 		var numObjectsSkipped = 0;
-		console.log("Skipping existing objects is enabled, querying database...");
-		objectsToSkip = await getPagesToSkipFromNotionDatabase();
+		console.log("Skipping existing objects is enabled, the database will be queried for existing objects.");
 	}
 
-	console.log("Importing objects to Notion...");
+	// If we should take some action for objects that exist in the database but not the input
+	if (CONFIG.missingInInputPolicy && CONFIG.missingInInputPolicy.policy !== "noAction") {
+		shouldGetPagesInDB = true;
+		var numObjectsMissingInInput = 0;
+		var pagesMissingInInput = [];
+		console.log(`The "${CONFIG.missingInInputPolicy.policy}" policy is enabled for items missing in the input file, the database will be queried for existing objects.`);
+	}
+
+	if (shouldGetPagesInDB) {
+		console.log("Getting objects from the database...");
+		objectsAlreadyInDB = await getExistingPagesFromNotionDatabase();
+	}
+
+	// For the skipExisting policy, only get the skippedPropertyValue of the objectsAlreadyInDB
+	if (CONFIG.skipExisting?.enabled) {
+		var propertiesAlreadyInDB = objectsAlreadyInDB.map(object => object.skippedPropertyValue);
+	}
+
+	// For the missingInInputPolicy, get all objects that are in the database but not in the input file
+	if (CONFIG.missingInInputPolicy && CONFIG.missingInInputPolicy.policy !== "noAction") {
+		const inputObjects = Object.values(INPUTFILE).map(object => object[CONFIG.missingInInputPolicy.jsonKey]);
+		for (const object of objectsAlreadyInDB) {
+			if (!inputObjects.includes(object.missingPropertyValue)) {
+				numObjectsMissingInInput++;
+				pagesMissingInInput.push(object);
+			}
+		}
+
+		console.log(`\nFound ${numObjectsMissingInInput} objects in the database that are not in the input file.`);
+
+		if (numObjectsMissingInInput > 0) {
+			switch (CONFIG.missingInInputPolicy.policy) {
+				case "remove":
+					console.log("Removing objects missing in the inpout file from the database...");
+					for (const page of pagesMissingInInput) {
+						await removeNotionPage(page.pageId);
+					}
+				// No break, as we also want to alert those objects
+				case "alert":
+					const alertedPropertiesOnly = pagesMissingInInput.map(object => object.alertedPropertyValue ?? object.missingPropertyValue);
+					writeObjectsMissingInInputToFile(alertedPropertiesOnly);
+					break;
+				default:
+					console.log(`The "${CONFIG.missingInInputPolicy.policy}" policy is not supported.`);
+			}
+		}
+	}
+
+	console.log("\nImporting objects to Notion...");
 
 	let erroredObjects = [];
 	let errorMessages = [];
@@ -37,9 +85,8 @@ async function main() {
 
 	progressBar.start(Object.keys(INPUTFILE).length, 0);
 
-	// run the following for loop for each object in the input file
 	for (const [inputKey, inputObject] of Object.entries(INPUTFILE)) {
-		if (CONFIG.skipExisting?.enabled && objectsToSkip.includes(inputObject[CONFIG.skipExisting.jsonKey])) {
+		if (CONFIG.skipExisting?.enabled && propertiesAlreadyInDB.includes(inputObject[CONFIG.skipExisting.jsonKey])) {
 			progressBar.increment();
 			numObjectsSkipped++;
 			continue;
@@ -107,6 +154,8 @@ async function main() {
 			writeErroredObjectsToFile(erroredObjects, errorMessages);
 		}
 	}
+
+	console.log("\nDid you find this tool useful? Buy me a coffee at https://ko-fi.com/nikkelm");
 }
 
 // ---------- Property handlers ----------
@@ -114,7 +163,7 @@ async function main() {
 // ----- Nested object policy -----
 
 function applyNestedObjectPolicy(inputObject, configProperty) {
-	if(!configProperty.nestedObjectPolicy) {
+	if (!configProperty.nestedObjectPolicy) {
 		throw new Error(`No nested object policy specified for property "${configProperty.notionPropertyName}"`);
 	}
 

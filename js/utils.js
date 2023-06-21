@@ -82,3 +82,14 @@ export function writeErroredObjectsToFile(erroredObjects, errorMessages) {
 
 	console.log(`Wrote errored objects to file "${outputFilename}".`);
 }
+
+export function writeObjectsMissingInInputToFile(objectsMissingInInput) {
+	console.log("Writing objects missing in input to file...");
+
+	const outputFilename = `${CONFIG.inputFile.split(".json")[0]}_objectsMissingInInput.json`;
+
+	// Write missing objects to file
+	fs.writeFileSync(`${outputFilename}`, JSON.stringify(objectsMissingInInput, null, 2));
+
+	console.log(`Wrote objects missing in input to file "${outputFilename}".`);
+}
