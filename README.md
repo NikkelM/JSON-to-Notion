@@ -134,7 +134,7 @@ Not all property types are supported.
 <details>
 <summary><code>missingInInputPolicy</code></summary>
 
-Decide what to do with entries in the database that have the given notionProperty set, but do not exist in the input file (i.e., an updated dataset no longer contains this entry). If this key is omitted, no action is taken and such entries are ignored.
+Decide what to do with entries in the database that have the given `notionProperty` set, but do not exist in the input file (i.e., an updated dataset no longer contains this entry). If this key is omitted, no action is taken and such entries are ignored.
 
 | Type | Default value | Possible values | Required |
 | --- | --- | --- | --- |
@@ -155,7 +155,7 @@ Decide what to do with entries in the database that have the given notionPropert
 
 <h4><code>policy</code></h4>
 
-The action to take when an entry exists in the database whose notionProperty value does not exist in the input file.
+The action to take when an entry exists in the database whose `notionProperty` value does not exist in the input file.
 
 | Type | Default value | Possible values | Required |
 | --- | --- | --- | --- |
@@ -245,7 +245,7 @@ The Notion property name to map to the JSON key.
 
 <h4><code>notionPropertyType</code></h4>
 
-The type of the Notion property. Note: Not all property types are supported as of now. Unsupported types that may get supported later on: status, files, checkbox, email, phone number. If you would like one of these supported, please open an Issue on the project's Github page.
+The type of the Notion property. Note: Not all property types are supported as of now. Unsupported types that may get supported later on: status, files, checkbox, email, phone number. If you would like one of these supported, please open an [issue](https://github.com/NikkelM/JSON-to-Notion/issues/new).
 
 | Type | Default value | Possible values | Required |
 | --- | --- | --- | --- |
