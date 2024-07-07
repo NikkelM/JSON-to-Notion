@@ -320,7 +320,7 @@ The type of the Notion property. Note: Not all property types are supported as o
 <details>
 <summary><code>nestedObjectPolicy</code></summary>
 
-The policy to use when the value to the specified JSON key another JSON object. This is useful when the JSON value is an object that contains multiple properties that should be mapped to a single Notion property.
+The policy to use when the value of the specified JSON key contains another JSON object. This is useful when the JSON value is an object that contains multiple properties that should be mapped to a single Notion property.
 
 | Type | Default value | Possible values | Required |
 | --- | --- | --- | --- |
@@ -337,7 +337,7 @@ The policy to use when the value to the specified JSON key another JSON object. 
 
 <h4><code>policy</code></h4>
 
-The policy to use when the value to the specified JSON key another JSON object.
+The policy to use when the value of the specified JSON key contains another JSON object.
 
 | Type | Default value | Possible values | Required |
 | --- | --- | --- | --- |
