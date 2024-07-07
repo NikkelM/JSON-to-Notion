@@ -206,7 +206,7 @@
 						]
 					},
 					"nestedObjectPolicy": {
-						"description": "The policy to use when the value to the specified JSON key another JSON object. This is useful when the JSON value is an object that contains multiple properties that should be mapped to a single Notion property.",
+						"description": "The policy to use when the value of the specified JSON key contains another JSON object. This is useful when the JSON value is an object that contains multiple properties that should be mapped to a single Notion property.",
 						"type": "object",
 						"default": {
 							"policy": "useNamedProperty",
@@ -215,7 +215,7 @@
 						"additionalProperties": false,
 						"properties": {
 							"policy": {
-								"description": "The policy to use when the value to the specified JSON key another JSON object.",
+								"description": "The policy to use when the value of the specified JSON key contains another JSON object.",
 								"type": "string",
 								"default": "useNamedProperty",
 								"oneOf": [
