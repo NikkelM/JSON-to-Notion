@@ -7,13 +7,15 @@ const NOTION = new Client({
 	auth: CONFIG.notionIntegrationKey,
 	logLevel: LogLevel.ERROR
 });
-const databaseId = CONFIG.notionDatabaseId;
+const DATABASE_ID = CONFIG.notionDatabaseId;
+// Will be set to the only available data source if none is provided in the config and only one exists in the database
+let DATASOURCE_ID = CONFIG.notionDataSourceId || null;
 
 export async function createNotionPage(properties) {
 	// Create a new page in the database
 	await NOTION.pages.create({
 		parent: {
-			database_id: databaseId
+			data_source_id: DATASOURCE_ID
 		},
 		properties: properties.properties,
 		cover: properties.cover,
@@ -79,8 +81,24 @@ export async function checkNotionPropertiesExistence() {
 		}
 	}
 
-	const response = await NOTION.databases.retrieve({
-		database_id: databaseId
+	const databaseResponse = await NOTION.databases.retrieve({
+		database_id: DATABASE_ID
+	});
+
+	if (CONFIG.notionDataSourceId) {
+		if (databaseResponse.data_sources.find(ds => ds.id === CONFIG.notionDataSourceId) === undefined) {
+			console.error("Error validating configuration file: Notion database does not contain a data source with the ID specified in the configuration file. Check the \"notionDataSourceId\" property in your config.json");
+			process.exit(1);
+		}
+	} else if (databaseResponse.data_sources.length == 1) {
+		DATASOURCE_ID = databaseResponse.data_sources[0].id;
+	} else {
+		console.error("Error validating configuration file: Notion database contains multiple data sources, but no data source ID to use is specified in the configuration file. Provide the \"notionDataSourceId\" property in your config.json");
+		process.exit(1);
+	}
+
+	const response = await NOTION.dataSources.retrieve({
+		data_source_id: DATASOURCE_ID
 	});
 
 	// If any of the properties are not found in the database, exit the program
@@ -181,8 +199,8 @@ export async function getExistingPagesFromNotionDatabase() {
 
 // Fetch all pages from the database that have the specified property set to anything but null
 async function queryDatabase(cursor) {
-	return await NOTION.databases.query({
-		database_id: databaseId,
+	return await NOTION.dataSources.query({
+		data_source_id: DATASOURCE_ID,
 		page_size: 100,
 		start_cursor: cursor,
 		filter: {
