@@ -68,6 +68,18 @@ The ID of the database you want to run the integration on. You can find the ID i
 </details>
 
 <details>
+<summary><code>notionDataSourceId</code></summary>
+
+The ID of the data source you want to run the integration on. This is required if you have multiple data sources in your database. You can find the ID under the `Manage data sources` menu in the database settings. If you only have one data source (which is the default), you can leave this property empty.
+
+<img src="images/CopyDataSourceId.png" alt="Notion data source ID location" style="height:600px;">
+
+| Type | Default value | Possible values | Required |
+|---|---|---|---|
+| `string` | `""` | A valid data source ID of one of the data sources in your database | Yes, if you have multiple data sources in your database. |
+</details>
+
+<details>
 <summary><code>inputFile</code></summary>
 
 The JSON file to import to Notion.

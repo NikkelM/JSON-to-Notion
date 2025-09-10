@@ -2,6 +2,7 @@
 	"$schema": "config.schema.json",
 	"notionIntegrationKey": "",
 	"notionDatabaseId": "",
+	"notionDataSourceId": "",
 	"inputFile": "input.json",
 	"skipExisting": {
 		"enabled": false,
