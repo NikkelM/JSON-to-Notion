@@ -103,7 +103,7 @@ Whether to skip existing entries in the database. If set to true, the script wil
 	"enabled": false,
 	"jsonKey": "keyInJSON",
 	"notionProperty": "ItemId",
-	"propertyType": "number"
+	"propertyType": "rich_text"
 }
 ```
 
@@ -157,7 +157,7 @@ Decide what to do with entries in the database that have the given `notionProper
 	"policy": "noAction",
 	"jsonKey": "keyInJSON",
 	"notionProperty": "ItemId",
-	"propertyType": "number",
+	"propertyType": "rich_text",
 	"alertedNotionProperty": "ItemName",
 	"alertedPropertyType": "title"
 }

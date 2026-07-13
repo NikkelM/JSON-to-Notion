@@ -135,13 +135,13 @@ export async function getExistingPagesFromNotionDatabase() {
 				switch (CONFIG.skipExisting.propertyType) {
 					case "title":
 					case "rich_text":
-						newPage.skippedPropertyValue = page.properties[CONFIG.skipExisting.notionProperty][CONFIG.skipExisting.propertyType][0].plain_text;
+						newPage.skippedPropertyValue = page.properties[CONFIG.skipExisting.notionProperty][CONFIG.skipExisting.propertyType]?.[0]?.plain_text ?? null;
 						break;
 					case "number":
 						newPage.skippedPropertyValue = page.properties[CONFIG.skipExisting.notionProperty].number;
 						break;
 					case "select":
-						newPage.skippedPropertyValue = page.properties[CONFIG.skipExisting.notionProperty].select.name;
+						newPage.skippedPropertyValue = page.properties[CONFIG.skipExisting.notionProperty].select?.name ?? null;
 						break;
 					case "url":
 						newPage.skippedPropertyValue = page.properties[CONFIG.skipExisting.notionProperty].url;
@@ -155,13 +155,13 @@ export async function getExistingPagesFromNotionDatabase() {
 					switch (CONFIG.missingInInputPolicy.alertedPropertyType) {
 						case "title":
 						case "rich_text":
-							newPage.alertedPropertyValue = page.properties[CONFIG.missingInInputPolicy.alertedNotionProperty][CONFIG.missingInInputPolicy.alertedPropertyType][0].plain_text;
+							newPage.alertedPropertyValue = page.properties[CONFIG.missingInInputPolicy.alertedNotionProperty][CONFIG.missingInInputPolicy.alertedPropertyType]?.[0]?.plain_text ?? null;
 							break;
 						case "number":
 							newPage.alertedPropertyValue = page.properties[CONFIG.missingInInputPolicy.alertedNotionProperty].number;
 							break;
 						case "select":
-							newPage.alertedPropertyValue = page.properties[CONFIG.missingInInputPolicy.alertedNotionProperty].select.name;
+							newPage.alertedPropertyValue = page.properties[CONFIG.missingInInputPolicy.alertedNotionProperty].select?.name ?? null;
 							break;
 						case "url":
 							newPage.alertedPropertyValue = page.properties[CONFIG.missingInInputPolicy.alertedNotionProperty].url;
@@ -172,13 +172,13 @@ export async function getExistingPagesFromNotionDatabase() {
 				switch (CONFIG.missingInInputPolicy.propertyType) {
 					case "title":
 					case "rich_text":
-						newPage.missingPropertyValue = page.properties[CONFIG.missingInInputPolicy.notionProperty][CONFIG.missingInInputPolicy.propertyType][0].plain_text;
+						newPage.missingPropertyValue = page.properties[CONFIG.missingInInputPolicy.notionProperty][CONFIG.missingInInputPolicy.propertyType]?.[0]?.plain_text ?? null;
 						break;
 					case "number":
 						newPage.missingPropertyValue = page.properties[CONFIG.missingInInputPolicy.notionProperty].number;
 						break;
 					case "select":
-						newPage.missingPropertyValue = page.properties[CONFIG.missingInInputPolicy.notionProperty].select.name;
+						newPage.missingPropertyValue = page.properties[CONFIG.missingInInputPolicy.notionProperty].select?.name ?? null;
 						break;
 					case "url":
 						newPage.missingPropertyValue = page.properties[CONFIG.missingInInputPolicy.notionProperty].url;
@@ -199,15 +199,31 @@ export async function getExistingPagesFromNotionDatabase() {
 
 // Fetch all pages from the database that have the specified property set to anything but null
 async function queryDatabase(cursor) {
-	return await NOTION.dataSources.query({
+	// Either policy may be used independently, so build the filter from whichever is active
+	const filterConditions = [];
+	if (CONFIG.skipExisting?.enabled) {
+		filterConditions.push({
+			property: CONFIG.skipExisting.notionProperty,
+			[CONFIG.skipExisting.propertyType]: { "is_not_empty": true }
+		});
+	}
+	if (CONFIG.missingInInputPolicy && CONFIG.missingInInputPolicy.policy !== "noAction") {
+		filterConditions.push({
+			property: CONFIG.missingInInputPolicy.notionProperty,
+			[CONFIG.missingInInputPolicy.propertyType]: { "is_not_empty": true }
+		});
+	}
+
+	const query = {
 		data_source_id: DATASOURCE_ID,
 		page_size: 100,
-		start_cursor: cursor,
-		filter: {
-			property: CONFIG.skipExisting.notionProperty,
-			[CONFIG.skipExisting.propertyType]: {
-				"is_not_empty": true
-			}
-		}
-	});
+		start_cursor: cursor
+	};
+	if (filterConditions.length === 1) {
+		query.filter = filterConditions[0];
+	} else if (filterConditions.length > 1) {
+		query.filter = { "or": filterConditions };
+	}
+
+	return await NOTION.dataSources.query(query);
 }

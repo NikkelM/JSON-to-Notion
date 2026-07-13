@@ -58,7 +58,7 @@ async function main() {
 		if (numObjectsMissingInInput > 0) {
 			switch (CONFIG.missingInInputPolicy.policy) {
 				case "remove":
-					console.log("Removing objects missing in the inpout file from the database...");
+					console.log("Removing objects missing in the input file from the database...");
 					for (const page of pagesMissingInInput) {
 						await removeNotionPage(page.pageId);
 					}

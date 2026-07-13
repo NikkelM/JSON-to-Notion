@@ -39,7 +39,7 @@
 				"enabled": false,
 				"jsonKey": "keyInJSON",
 				"notionProperty": "ItemId",
-				"propertyType": "number"
+				"propertyType": "rich_text"
 			},
 			"properties": {
 				"enabled": {
@@ -55,7 +55,7 @@
 				"notionProperty": {
 					"description": "The name of the field in the Notion database that should be compared to the value of the \"jsonKey\".",
 					"type": "string",
-					"default": "ItemID"
+					"default": "ItemId"
 				},
 				"propertyType": {
 					"description": "The type of the property used for checking if an entry already exists in the database. Not all property types are supported.",
@@ -85,7 +85,7 @@
 				"policy": "noAction",
 				"jsonKey": "keyInJSON",
 				"notionProperty": "ItemId",
-				"propertyType": "number",
+				"propertyType": "rich_text",
 				"alertedNotionProperty": "ItemName",
 				"alertedPropertyType": "title"
 			},
@@ -117,7 +117,7 @@
 				"notionProperty": {
 					"description": "The name of the field in the Notion database that should be compared to the value of the \"jsonKey\".",
 					"type": "string",
-					"default": "ItemID"
+					"default": "ItemId"
 				},
 				"propertyType": {
 					"description": "The type of the property used for checking if an entry already exists in the database. Not all property types are supported.",
@@ -149,8 +149,11 @@
 					]
 				}
 			},
-			"dependentRequired": {
-			  "alertedNotionProperty": ["alertedPropertyType"]
+			"if": {
+				"required": ["alertedNotionProperty"]
+			},
+			"then": {
+				"required": ["alertedPropertyType"]
 			},
 			"required": [
 				"policy",

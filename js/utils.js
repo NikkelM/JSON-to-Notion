@@ -49,7 +49,13 @@ function getInputFile() {
 		console.error(`Input file does not exist: ${CONFIG.inputFile}`);
 		process.exit(1);
 	}
-	const INPUTFILE = JSON.parse(fs.readFileSync(CONFIG.inputFile));
+	let INPUTFILE;
+	try {
+		INPUTFILE = JSON.parse(fs.readFileSync(CONFIG.inputFile));
+	} catch (error) {
+		console.error(`Error parsing input file "${CONFIG.inputFile}" as JSON: ${error.message ?? error}`);
+		process.exit(1);
+	}
 
 	// Validate the input file
 	console.log("Validating input file...\n");

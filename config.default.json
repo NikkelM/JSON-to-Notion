@@ -8,13 +8,13 @@
 		"enabled": false,
 		"jsonKey": "keyInJSON",
 		"notionProperty": "ItemId",
-		"propertyType": "number"
+		"propertyType": "rich_text"
 	},
 	"missingInInputPolicy": {
 		"policy": "noAction",
 		"jsonKey": "keyInJSON",
 		"notionProperty": "ItemId",
-		"propertyType": "number",
+		"propertyType": "rich_text",
 		"alertedNotionProperty": "ItemName",
 		"alertedPropertyType": "title"
 	},
