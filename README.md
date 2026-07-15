@@ -1,30 +1,74 @@
-# Import JSON files to Notion
+# JSON to Notion
 
 ![JSON to Notion banner](images/JSONToNotionBanner.png)
 
-Utility that is able to "import" JSON files to Notion - for cases where a CSV file is simply not available, and the conversion from JSON to CSV would be too complicated.
+[![npm version](https://img.shields.io/npm/v/json-to-notion)](https://www.npmjs.com/package/json-to-notion)
+[![Tests](https://github.com/NikkelM/JSON-to-Notion/actions/workflows/test.yml/badge.svg)](https://github.com/NikkelM/JSON-to-Notion/actions/workflows/test.yml)
+<!-- [![npm downloads](https://img.shields.io/npm/dt/json-to-notion)](https://www.npmjs.com/package/json-to-notion) -->
 
-## Setup 
+Import a JSON file into a Notion database - for cases where a CSV is simply not available, and converting JSON to CSV would be too complicated.
 
-Run `npm install` to install the required dependencies first.
+## Table of contents
 
-Following this, create a `config.json` file in the root directory of the project and fill it with your desired [configuration](#configuration).
+- [Installation](#installation)
+- [Notion setup](#notion-setup)
+- [Usage](#usage)
+- [Output](#output)
+- [Configuration](#configuration)
+- [Feedback](#feedback)
 
-If you haven't already done so, you can obtain a Notion integration key by creating an (internal) Notion integration for your workspace.
-You can follow [this guide](https://developers.notion.com/docs/create-a-notion-integration) to learn how to do so.
-You will need this key to run the integration locally.
+## Installation
 
-**IMPORTANT: Don't forget to connect the integration to your database, as described in the guide! Otherwise, the import won't work.**
+Run it on demand without installing anything (requires [Node.js](https://nodejs.org) 22.13 or newer):
+
+```bash
+npx json-to-notion
+```
+
+Or install it globally to get a persistent `json-to-notion` command:
+
+```bash
+npm install -g json-to-notion
+```
+
+## Notion setup
+
+You need a Notion integration key and a database that the integration has been given access to.
+
+Create an internal integration for your workspace on your [integrations dashboard](https://www.notion.so/my-integrations), following [this guide](https://developers.notion.com/docs/create-a-notion-integration).
+
+**IMPORTANT: Don't forget to connect the integration to your database, or the import won't work.**
+Note your database ID (from the database URL), and the data source ID as well if your database has multiple data sources.
 
 ## Usage
 
-After providing the `config.json` [configuration](#configuration) file, you can run the script using
+The tool is driven by a `config.json` in your current directory.
+The quickest way to create one is the interactive wizard:
 
 ```bash
-node index.js
+json-to-notion init
 ```
 
-The script will now automatically import the specified JSON properties to your Notion database.
+It asks for your Notion credentials, the input file, and one or more property mappings, writes a `config.json`, and offers to run it right away.
+
+You can also write the `config.json` by hand - see [Configuration](#configuration) - and then run the tool:
+
+```bash
+json-to-notion
+```
+
+By default it reads `./config.json`; pass `--config <path>` to point at a different file, or `--input <path>` to override just the input file.
+Run `json-to-notion --help` to see every command.
+
+> Configuration files are validated against a JSON schema (`config.schema.json`, shipped with the package).
+> Add `"$schema": "config.schema.json"` to your `config.json`, with a copy of the schema next to it, and your editor will flag mistakes as you type.
+
+## Output
+
+Every top-level object in the input file becomes a new page in your Notion database.
+
+If `writeErroredObjectsToFile` is enabled, any objects that could not be imported are written to `<inputFile>_erroredObjects.json` for inspection.
+When `missingInInputPolicy` is set to `alert` or `remove`, entries that exist in the database but not in the input file are written to `<inputFile>_objectsMissingInInput.json`.
 
 ## Configuration
 
