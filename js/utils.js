@@ -14,17 +14,13 @@ export let INPUTFILE;
 
 // ---------- Config ----------
 
-// Load a config from the given path, or discover ./config.json (falling back to ./config.default.json)
-// in the current directory, then validate it against the shipped schema
+// Load a config from the given path, or discover ./config.json in the current directory, then validate it against the shipped schema
 export function loadConfig(configPath) {
 	let configFileName = configPath;
 	if (!configFileName) {
 		if (fs.existsSync('config.json')) {
 			console.log("Loading configuration file \"config.json\"...");
 			configFileName = 'config.json';
-		} else if (fs.existsSync('config.default.json')) {
-			console.log("!!! No custom configuration file found! Loading default configuration file \"config.default.json\"...");
-			configFileName = 'config.default.json';
 		} else {
 			console.error("Error loading configuration file: no \"config.json\" found in the current directory. Run \"json-to-notion init\" to create one, or pass --config <path>.");
 			process.exit(1);

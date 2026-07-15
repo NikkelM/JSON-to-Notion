@@ -9,9 +9,6 @@ import { loadConfig } from '../js/utils.js';
 import { run } from '../js/jsonToNotion.js';
 import { runWizard } from '../js/wizard.js';
 
-// Suppresses the warning about the fetch API being unstable
-process.removeAllListeners('warning');
-
 const packageRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const pkg = JSON.parse(fs.readFileSync(path.join(packageRoot, 'package.json'), 'utf8'));
 
