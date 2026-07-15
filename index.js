@@ -10,9 +10,23 @@ import { CONFIG, INPUTFILE, writeErroredObjectsToFile, writeObjectsMissingInInpu
 import { checkNotionPropertiesExistence, createNotionPage, removeNotionPage, getExistingPagesFromNotionDatabase } from './js/notion.js';
 
 // ---------- Setup ----------
-await checkNotionPropertiesExistence();
+try {
+	await checkNotionPropertiesExistence();
+} catch (error) {
+	if (error?.code === 'unauthorized') {
+		console.error("\nError: Your Notion integration key is invalid. Check \"notionIntegrationKey\" in your config.json (create or find it at https://www.notion.so/my-integrations).");
+	} else if (error?.code === 'object_not_found') {
+		console.error("\nError: The Notion database was not found, or your integration has not been granted access to it. Check \"notionDatabaseId\" and share the database with your integration.");
+	} else {
+		console.error("\nError connecting to Notion: " + (error?.message ?? error));
+	}
+	process.exit(1);
+}
 
-main();
+main().catch((error) => {
+	console.error("\nAn unexpected error occurred: " + (error?.message ?? error));
+	process.exit(1);
+});
 
 async function main() {
 	let shouldGetPagesInDB = false;
