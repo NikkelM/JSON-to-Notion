@@ -4,12 +4,12 @@ import { CONFIG } from './utils.js';
 // ---------- Notion API ----------
 
 const NOTION = new Client({
-	auth: CONFIG.notionIntegrationKey,
+	auth: CONFIG.notionIntegrationKey?.trim(),
 	logLevel: LogLevel.ERROR
 });
-const DATABASE_ID = CONFIG.notionDatabaseId;
+const DATABASE_ID = CONFIG.notionDatabaseId?.trim();
 // Will be set to the only available data source if none is provided in the config and only one exists in the database
-let DATASOURCE_ID = CONFIG.notionDataSourceId || null;
+let DATASOURCE_ID = CONFIG.notionDataSourceId?.trim() || null;
 
 export async function createNotionPage(properties) {
 	// Create a new page in the database
