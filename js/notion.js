@@ -128,7 +128,7 @@ export async function getExistingPagesFromNotionDatabase() {
 	let newPage = {};
 
 	async function getPages(cursor) {
-		// While there are more pages left in the query, get pages from the database. 
+		// While there are more pages left in the query, get pages from the database
 		const currentPages = await queryDatabase(cursor);
 
 		currentPages.results.forEach(page => {

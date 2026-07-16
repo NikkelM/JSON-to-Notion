@@ -52,12 +52,13 @@ export function validateConfigResult(config) {
 
 // Validate a config against the shipped schema, exiting the process on failure
 export function validateConfig(config) {
-	console.log("Validating configuration file...\n");
+	console.log("Validating configuration file...");
 	const result = validateConfigResult(config);
 	if (result.errors.length > 0) {
 		console.error("Error validating configuration file: " + result.errors.map((error) => error.stack).join('; '));
 		process.exit(1);
 	}
+	console.log("Configuration file validated successfully!\n");
 }
 
 // Activate a validated config and load its input file into the live bindings
