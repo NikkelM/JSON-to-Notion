@@ -71,6 +71,7 @@ json-to-notion --database-id <databaseId> --map title:Name:title --map url:Link:
 ```
 
 Repeat `--map jsonKey:NotionPropertyName:type` for each property you want to import, and add `--input <path>` or `--data-source-id <id>` as needed.
+Add `--save-config` to also write the assembled configuration to a `config.json` (or `--save-config <path>`) so you can reuse or edit it later.
 Advanced options such as `skipExisting`, `extraProperties` and nested-object policies are only available through a `config.json` or the wizard.
 
 > Configuration files are validated against a JSON schema (`config.schema.json`, shipped with the package).
