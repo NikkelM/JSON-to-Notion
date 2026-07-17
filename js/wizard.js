@@ -5,7 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { input, select, confirm } from '@inquirer/prompts';
 
-import { validateConfig } from './utils.js';
+import { validateConfig, envVarInstructions } from './utils.js';
 import { run } from './jsonToNotion.js';
 
 // Read the allowed property types straight from the shipped schema so the prompts stay in sync with it
@@ -24,8 +24,14 @@ export async function runWizard(outputPath = 'config.json') {
 		}
 	}
 
-	console.log('\nYour Notion integration key is read from the NOTION_INTEGRATION_KEY environment variable (or you are prompted for it when the import runs).');
-	console.log('It is never written to the configuration file.\n');
+	console.log('\nYour Notion integration key is read from the NOTION_INTEGRATION_KEY environment variable and is never written to the configuration file.');
+	if (process.env.NOTION_INTEGRATION_KEY?.trim()) {
+		console.log('NOTION_INTEGRATION_KEY is set - it will be used automatically.\n');
+	} else {
+		console.log('NOTION_INTEGRATION_KEY is not set - you will be asked for your key when the import runs, which works fine.');
+		console.log('To avoid entering it every time, set it as an environment variable and re-run:');
+		console.log(envVarInstructions('NOTION_INTEGRATION_KEY') + '\n');
+	}
 
 	const notionDatabaseId = await input({
 		message: 'Notion database ID (from the database URL):',
