@@ -11,7 +11,7 @@
 			"default": "config.schema.json"
 		},
 		"notionIntegrationKey": {
-			"description": "The secret integration key for your Notion integration. Find it on your integration dashboard after creating a new integration on https://www.notion.so/my-integrations",
+			"description": "The secret integration key for your Notion integration (create or find it at https://www.notion.so/my-integrations). Provide this via the NOTION_INTEGRATION_KEY environment variable - storing it here is no longer allowed and the tool will refuse to run if it is set.",
 			"type": "string",
 			"default": ""
 		},
@@ -372,7 +372,6 @@
 		}
 	},
 	"required": [
-		"notionIntegrationKey",
 		"notionDatabaseId",
 		"inputFile",
 		"propertyMappings"

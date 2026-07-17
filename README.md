@@ -40,6 +40,9 @@ Create an internal integration for your workspace on your [integrations dashboar
 **IMPORTANT: Don't forget to connect the integration to your database, or the import won't work.**
 Note your database ID (from the database URL), and the data source ID as well if your database has multiple data sources.
 
+This tool reads your integration key from the `NOTION_INTEGRATION_KEY` environment variable, or prompts you for it when the import runs.
+It is never written or sent anywhere.
+
 ## Usage
 
 The tool is driven by a `config.json` in your current directory.
@@ -423,6 +426,17 @@ The prioritized list of properties to use when the `policy` is set to `usePriori
 ]
 ```
 </details>
+
+## Security
+
+Your Notion integration key is a secret, so this tool never writes it to disk.
+
+- It is read from the `NOTION_INTEGRATION_KEY` environment variable, or you are prompted for it interactively when the import runs.
+- It is never written to `config.json` or any other file, and is never logged.
+- It is never sent anywhere.
+
+Provide it inline for a single run, for example `NOTION_INTEGRATION_KEY=secret_xxx json-to-notion`, or export it in your shell profile.
+Grant your integration only the access it needs, and rotate the key if it may have been exposed.
 
 ## Related projects
 

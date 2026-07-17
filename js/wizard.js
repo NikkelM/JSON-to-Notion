@@ -3,7 +3,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { input, password, select, confirm } from '@inquirer/prompts';
+import { input, select, confirm } from '@inquirer/prompts';
 
 import { validateConfig } from './utils.js';
 import { run } from './jsonToNotion.js';
@@ -24,11 +24,8 @@ export async function runWizard(outputPath = 'config.json') {
 		}
 	}
 
-	const notionIntegrationKey = await password({
-		message: 'Notion integration key (create or find it at https://www.notion.so/my-integrations):',
-		mask: true,
-		validate: (value) => value.trim() ? true : 'A Notion integration key is required.'
-	});
+	console.log('\nYour Notion integration key is read from the NOTION_INTEGRATION_KEY environment variable (or you are prompted for it when the import runs).');
+	console.log('It is never written to the configuration file.\n');
 
 	const notionDatabaseId = await input({
 		message: 'Notion database ID (from the database URL):',
@@ -79,7 +76,6 @@ export async function runWizard(outputPath = 'config.json') {
 	// Build the config in a natural key order (the optional data source ID sits next to the database ID)
 	const config = {
 		$schema: 'config.schema.json',
-		notionIntegrationKey: notionIntegrationKey.trim(),
 		notionDatabaseId: notionDatabaseId.trim()
 	};
 	if (notionDataSourceId.trim()) {

@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import jsonschema from 'jsonschema';
+import { password } from '@inquirer/prompts';
 
 // The package root, so the shipped config schema is found no matter the working directory
 const packageDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -65,6 +66,33 @@ export function validateConfig(config) {
 export function initConfig(config) {
 	CONFIG = config;
 	INPUTFILE = loadInputFile();
+}
+
+// ---------- Secrets ----------
+
+export function envVarInstructions(envVar, value = '<value>') {
+	return `  PowerShell:  $env:${envVar} = '${value}'\n  bash/zsh:    export ${envVar}='${value}'`;
+}
+
+// Resolve a secret from an explicit flag, then the environment, then an interactive prompt
+// A secret stored in the config file is rejected so it can be moved to the environment, and the secret is never written to disk by this tool
+export async function resolveSecret({ flagValue, envVar, configValue, configField, promptMessage, label }) {
+	if (configValue?.trim()) {
+		throw new Error(`for your security, the ${label} must not be stored in the configuration file. Remove "${configField}" from your config, then set the ${envVar} environment variable instead:\n${envVarInstructions(envVar)}`);
+	}
+	const fromFlag = flagValue?.trim();
+	if (fromFlag) {
+		return fromFlag;
+	}
+	const fromEnv = process.env[envVar]?.trim();
+	if (fromEnv) {
+		return fromEnv;
+	}
+	if (process.stdin.isTTY) {
+		const entered = await password({ message: promptMessage, mask: true, validate: (value) => value.trim() ? true : `The ${label} is required.` });
+		return entered.trim();
+	}
+	throw new Error(`the ${label} is required - set the ${envVar} environment variable (or run in an interactive terminal to be prompted):\n${envVarInstructions(envVar)}`);
 }
 
 // ---------- Input file validation ----------

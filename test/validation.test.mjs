@@ -37,7 +37,11 @@ describe('config schema validation', () => {
 		assert.ok(accepts(config));
 	});
 
-	for (const key of ['notionIntegrationKey', 'notionDatabaseId', 'inputFile', 'propertyMappings']) {
+	it('accepts a config without notionIntegrationKey (provided via env var or prompt at runtime)', () => {
+		assert.ok(accepts(withoutKey('notionIntegrationKey')));
+	});
+
+	for (const key of ['notionDatabaseId', 'inputFile', 'propertyMappings']) {
 		it(`rejects a config missing the required "${key}"`, () => {
 			assert.ok(!accepts(withoutKey(key)));
 		});

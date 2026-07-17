@@ -2,18 +2,26 @@
 
 import cliProgress from 'cli-progress';
 
-import { CONFIG, INPUTFILE, initConfig, writeErroredObjectsToFile, writeObjectsMissingInInputToFile } from './utils.js';
+import { CONFIG, INPUTFILE, initConfig, resolveSecret, writeErroredObjectsToFile, writeObjectsMissingInInputToFile } from './utils.js';
 import { checkNotionPropertiesExistence, createNotionPage, removeNotionPage, getExistingPagesFromNotionDatabase } from './notion.js';
 
 // Activate the given (already validated) config, verify the Notion database, then import every input object
 export async function run(config) {
 	initConfig(config);
 
+	CONFIG.notionIntegrationKey = await resolveSecret({
+		envVar: 'NOTION_INTEGRATION_KEY',
+		configValue: CONFIG.notionIntegrationKey,
+		configField: 'notionIntegrationKey',
+		promptMessage: 'Notion integration key (create or find it at https://www.notion.so/my-integrations):',
+		label: 'Notion integration key'
+	});
+
 	try {
 		await checkNotionPropertiesExistence();
 	} catch (error) {
 		if (error?.code === 'unauthorized') {
-			console.error("\nError: Your Notion integration key is invalid. Check \"notionIntegrationKey\" in your config.json (create or find it at https://www.notion.so/my-integrations).");
+			console.error("\nError: Your Notion integration key is invalid. Set a valid key via the NOTION_INTEGRATION_KEY environment variable (create or find it at https://www.notion.so/my-integrations).");
 		} else if (error?.code === 'object_not_found') {
 			console.error("\nError: The Notion database was not found, or your integration has not been granted access to it. Check \"notionDatabaseId\" and share the database with your integration.");
 		} else {
