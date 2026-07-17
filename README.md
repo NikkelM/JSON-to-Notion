@@ -50,6 +50,7 @@ json-to-notion init
 ```
 
 It asks for your Notion credentials, the input file, and one or more property mappings, writes a `config.json`, and offers to run it right away.
+Running `json-to-notion` with no arguments and no `config.json` present starts this wizard automatically.
 
 You can also write the `config.json` by hand - see [Configuration](#configuration) - and then run the tool:
 
