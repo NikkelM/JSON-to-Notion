@@ -16,20 +16,22 @@
 			"default": ""
 		},
 		"notionDatabaseId": {
-			"description": "The ID of the database you want to run the integration on. You can find the ID in the URL of your database, e.g. https://www.notion.so/myworkspace/your-database-id",
+			"description": "The ID of the database you want to run the integration on. You can find the ID in the URL of your database, e.g. https://www.notion.so/myworkspace/your-database-id. This is a 32-character hexadecimal ID (or the dashed UUID form).",
 			"type": "string",
-			"default": ""
+			"default": "",
+			"pattern": "^([0-9a-fA-F]{32}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})?$"
 		},
 		"notionDataSourceId": {
-			"description": "The ID of the data source you want to run the integration on. This is required if you have multiple data sources in your database. You can find the ID under the \"Manage data sources\" menu in the database settings. If you only have one data source (which is the default), you can leave this property empty.",
+			"description": "The ID of the data source you want to run the integration on. This is required if you have multiple data sources in your database. You can find the ID under the \"Manage data sources\" menu in the database settings. If you only have one data source (which is the default), you can leave this property empty. This is a 32-character hexadecimal ID (or the dashed UUID form).",
 			"type": "string",
-			"default": ""
+			"default": "",
+			"pattern": "^([0-9a-fA-F]{32}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})?$"
 		},
 		"inputFile": {
 			"description": "The JSON file to import to Notion.",
 			"type": "string",
 			"default": "input.json",
-			"pattern": ".*.json"
+			"pattern": "\\.json$"
 		},
 		"skipExisting": {
 			"description": "Whether to skip already existing entries in the database. If set to true, the script will only import entries that do not exist in the database yet.",

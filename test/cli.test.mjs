@@ -13,8 +13,7 @@ const cli = path.join(here, '..', 'bin', 'cli.js');
 
 const validConfig = {
 	$schema: 'config.schema.json',
-	notionIntegrationKey: 'secret_key',
-	notionDatabaseId: 'db-id',
+	notionDatabaseId: 'd35461658c304a3e9b4fef1faf895b31',
 	inputFile: 'input.json',
 	propertyMappings: [{ jsonKey: 'name', notionPropertyName: 'Name', notionPropertyType: 'title' }]
 };

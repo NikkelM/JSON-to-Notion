@@ -3,13 +3,13 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { validateConfigResult } from '../js/utils.js';
+import { validateConfigResult, normalizeNotionId } from '../js/utils.js';
 
 // A minimal valid config; helpers return mutated copies for the reject cases
 const base = () => ({
 	$schema: 'config.schema.json',
 	notionIntegrationKey: 'secret_key',
-	notionDatabaseId: 'db-id',
+	notionDatabaseId: 'd35461658c304a3e9b4fef1faf895b31',
 	inputFile: 'input.json',
 	propertyMappings: [
 		{ jsonKey: 'name', notionPropertyName: 'Name', notionPropertyType: 'title' }
@@ -71,9 +71,48 @@ describe('config schema validation', () => {
 		assert.ok(!accepts(config));
 	});
 
+	it('rejects a notionDatabaseId that is not a valid Notion ID', () => {
+		const config = base();
+		config.notionDatabaseId = 'fd';
+		assert.ok(!accepts(config));
+	});
+
+	it('accepts a dashed-UUID notionDatabaseId', () => {
+		const config = base();
+		config.notionDatabaseId = 'd3546165-8c30-4a3e-9b4f-ef1faf895b31';
+		assert.ok(accepts(config));
+	});
+
 	it('rejects a usePriorityList nestedObjectPolicy without a priorityList (if/then)', () => {
 		const config = base();
 		config.propertyMappings[0].nestedObjectPolicy = { policy: 'usePriorityList' };
 		assert.ok(!accepts(config));
+	});
+});
+
+describe('normalizeNotionId', () => {
+	const RAW = 'd35461658c304a3e9b4fef1faf895b31';
+
+	it('accepts a bare 32-character hex ID', () => {
+		assert.equal(normalizeNotionId(RAW), RAW);
+	});
+
+	it('accepts and normalizes a dashed UUID to the 32-character form', () => {
+		assert.equal(normalizeNotionId('d3546165-8c30-4a3e-9b4f-ef1faf895b31'), RAW);
+	});
+
+	it('extracts the ID from a pasted database URL with a title and query string', () => {
+		assert.equal(normalizeNotionId(`https://www.notion.so/myworkspace/My-Database-${RAW}?v=abc123`), RAW);
+	});
+
+	it('lowercases an uppercase ID', () => {
+		assert.equal(normalizeNotionId(RAW.toUpperCase()), RAW);
+	});
+
+	it('rejects too-short, empty or non-hex input', () => {
+		assert.equal(normalizeNotionId('fd'), null);
+		assert.equal(normalizeNotionId(''), null);
+		assert.equal(normalizeNotionId('not-a-valid-id'), null);
+		assert.equal(normalizeNotionId('g'.repeat(32)), null);
 	});
 });

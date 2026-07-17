@@ -68,6 +68,16 @@ export function initConfig(config) {
 	INPUTFILE = loadInputFile();
 }
 
+// ---------- Notion IDs ----------
+
+// A Notion database or data source ID is a UUID: 32 hex characters, or the 8-4-4-4-12 dashed form
+// Accepts a bare ID or extracts it from a pasted database URL, returning the 32-character ID (or null if none is found)
+export function normalizeNotionId(value) {
+	const candidate = String(value).trim().split(/[?#]/)[0];
+	const match = candidate.match(/([0-9a-f]{32}|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i);
+	return match ? match[1].replace(/-/g, '').toLowerCase() : null;
+}
+
 // ---------- Secrets ----------
 
 export function envVarInstructions(envVar, value = '<value>') {

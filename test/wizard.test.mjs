@@ -13,7 +13,7 @@ test('the wizard writes a schema-valid configuration file', async (t) => {
 	t.mock.module('@inquirer/prompts', {
 		namedExports: {
 			input: async ({ message }) => {
-				if (message.includes('database ID')) return 'database-123';
+				if (message.includes('database ID')) return 'd35461658c304a3e9b4fef1faf895b31';
 				if (message.includes('data source ID')) return '';
 				if (message.includes('input file')) return 'input.json';
 				if (message.includes('JSON key')) return 'name';
@@ -38,7 +38,7 @@ test('the wizard writes a schema-valid configuration file', async (t) => {
 	const written = JSON.parse(fs.readFileSync(outputPath, 'utf8'));
 
 	assert.ok(!('notionIntegrationKey' in written), 'the integration key must never be written to the config file');
-	assert.equal(written.notionDatabaseId, 'database-123');
+	assert.equal(written.notionDatabaseId, 'd35461658c304a3e9b4fef1faf895b31');
 	assert.ok(!('notionDataSourceId' in written), 'an empty data source ID should be omitted');
 	assert.deepEqual(written.propertyMappings, [{ jsonKey: 'name', notionPropertyName: 'Name', notionPropertyType: 'title' }]);
 	assert.deepEqual(written.extraProperties, []);

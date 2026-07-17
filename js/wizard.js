@@ -5,7 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { input, select, confirm } from '@inquirer/prompts';
 
-import { validateConfig, envVarInstructions } from './utils.js';
+import { validateConfig, envVarInstructions, normalizeNotionId } from './utils.js';
 import { run } from './jsonToNotion.js';
 
 // Read the allowed property types straight from the shipped schema so the prompts stay in sync with it
@@ -35,12 +35,13 @@ export async function runWizard(outputPath = 'config.json') {
 
 	const notionDatabaseId = await input({
 		message: 'Notion database ID (from the database URL):',
-		validate: (value) => value.trim() ? true : 'A Notion database ID is required.'
+		validate: (value) => normalizeNotionId(value) ? true : 'Enter a valid Notion database ID - a 32-character ID (or dashed UUID) from the database URL.'
 	});
 
 	const notionDataSourceId = await input({
 		message: 'Notion data source ID (optional - only needed if the database has multiple data sources):',
-		default: ''
+		default: '',
+		validate: (value) => !value.trim() || normalizeNotionId(value) ? true : 'Enter a valid Notion data source ID, or leave it empty.'
 	});
 
 	const inputFile = await input({
@@ -82,10 +83,10 @@ export async function runWizard(outputPath = 'config.json') {
 	// Build the config in a natural key order (the optional data source ID sits next to the database ID)
 	const config = {
 		$schema: 'config.schema.json',
-		notionDatabaseId: notionDatabaseId.trim()
+		notionDatabaseId: normalizeNotionId(notionDatabaseId)
 	};
 	if (notionDataSourceId.trim()) {
-		config.notionDataSourceId = notionDataSourceId.trim();
+		config.notionDataSourceId = normalizeNotionId(notionDataSourceId);
 	}
 	config.inputFile = inputFile.trim();
 	config.writeErroredObjectsToFile = writeErroredObjectsToFile;
