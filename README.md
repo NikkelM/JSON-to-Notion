@@ -15,6 +15,8 @@ Import a JSON file into a Notion database - for cases where a CSV is simply not 
 - [Usage](#usage)
 - [Output](#output)
 - [Configuration](#configuration)
+- [Security](#security)
+- [Related projects](#related-projects)
 - [Feedback](#feedback)
 
 ## Installation
@@ -62,7 +64,7 @@ json-to-notion
 ```
 
 By default it reads `./config.json`; pass `--config <path>` to point at a different file, or `--input <path>` to override just the input file.
-Run `json-to-notion --help` to see every command.
+Run `json-to-notion --help` to see every command, or `json-to-notion run --help` for the full list of flags.
 
 You can also run without a `config.json` at all, building the configuration entirely from flags:
 
@@ -73,6 +75,21 @@ json-to-notion --database-id <databaseId> --map title:Name:title --map url:Link:
 Repeat `--map jsonKey:NotionPropertyName:type` for each property you want to import, and add `--input <path>` or `--data-source-id <id>` as needed.
 Add `--save-config` to also write the assembled configuration to a `config.json` (or `--save-config <path>`) so you can reuse or edit it later.
 Advanced options such as `skipExisting`, `extraProperties` and nested-object policies are only available through a `config.json` or the wizard.
+
+### Command-line flags
+
+| Flag | Config key | Description |
+| --- | --- | --- |
+| `-c, --config <path>` | - | Path to a `config.json`. Defaults to `./config.json`. |
+| `-i, --input <path>` | `inputFile` | Path to the JSON input file. Overrides `inputFile` from the config. |
+| `--database-id <id>` | `notionDatabaseId` | Notion database ID. Providing it enables flag-driven mode (no `config.json` needed). |
+| `--data-source-id <id>` | `notionDataSourceId` | Notion data source ID. Only needed for databases with multiple data sources. |
+| `--map <jsonKey:NotionPropertyName:type>` | `propertyMappings` | A single property mapping. Repeat the flag for each property. |
+| `--no-write-errored` | `writeErroredObjectsToFile` | Do not write objects that failed to import to a file. |
+| `--save-config [path]` | - | Also write the assembled configuration to a file for reuse. Default `config.json`. |
+
+Your Notion integration key is always read from the `NOTION_INTEGRATION_KEY` environment variable (or you are prompted for it), never from a flag - see [Security](#security).
+The `init` command takes `-o, --output <path>` to choose where the wizard writes the configuration file (default `config.json`).
 
 > Configuration files are validated against a JSON schema (`config.schema.json`, shipped with the package).
 > Add `"$schema": "config.schema.json"` to your `config.json`, with a copy of the schema next to it, and your editor will flag mistakes as you type.
