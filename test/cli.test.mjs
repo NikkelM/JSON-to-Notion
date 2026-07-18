@@ -32,6 +32,27 @@ function runCli(args, files = {}) {
 	}
 }
 
+describe('CLI command wrappers', () => {
+	it('--version prints the package version', () => {
+		const { code, out } = runCli(['--version']);
+		assert.equal(code, 0);
+		assert.match(out.trim(), /^\d+\.\d+\.\d+/);
+	});
+
+	it('--help lists every command', () => {
+		const { code, out } = runCli(['--help']);
+		assert.equal(code, 0);
+		for (const command of ['run', 'init']) {
+			assert.match(out, new RegExp(command));
+		}
+	});
+
+	it('an unknown command exits non-zero', () => {
+		const { code } = runCli(['definitelyNotACommand']);
+		assert.notEqual(code, 0);
+	});
+});
+
 describe('CLI configuration guards', () => {
 	it('exits with a friendly message when no config file is found', () => {
 		const { code, out } = runCli([]);
