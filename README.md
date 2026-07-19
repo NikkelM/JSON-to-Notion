@@ -461,7 +461,7 @@ Your Notion integration key is a secret, so this tool never writes it to disk.
 - It is read from the `NOTION_INTEGRATION_KEY` environment variable, or you are prompted for it interactively when the import runs.
 - It is never written to `config.json` or any other file, and is never logged.
 
-Provide it inline for a single run, for example `NOTION_INTEGRATION_KEY=secret_xxx json-to-notion`, or export it in your shell profile.
+Provide it inline for a single run (for example `NOTION_INTEGRATION_KEY=secret_xxx json-to-notion`), or set it permanently so you are not asked again: `setx NOTION_INTEGRATION_KEY "secret_xxx"` on Windows (then open a new terminal), or add an `export` to your shell profile on macOS/Linux.
 Grant your integration only the access it needs, and rotate the key if it may have been exposed.
 
 ## Related projects
