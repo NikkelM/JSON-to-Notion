@@ -47,7 +47,7 @@
 				"enabled": {
 					"description": "Whether to skip existing entries in the database.",
 					"type": "boolean",
-					"default": true
+					"default": false
 				},
 				"jsonKey": {
 					"description": "The key in the JSON input that should be compared to the value of the \"notionProperty\".",
@@ -223,6 +223,9 @@
 							"namedProperty": "nameOfNestedProperty"
 						},
 						"additionalProperties": false,
+						"required": [
+							"policy"
+						],
 						"properties": {
 							"policy": {
 								"description": "The policy to use when the value of the specified JSON key contains another JSON object.",
@@ -296,14 +299,7 @@
 						"notionPropertyType"
 					]
 				}
-			},
-			"required": [
-				"notionIntegrationKey",
-				"notionDatabaseId",
-				"inputFile",
-				"inputIsArray",
-				"propertyMappings"
-			]
+			}
 		},
 		"extraProperties": {
 			"description": "Extra properties to add to the Notion database. These properties will be added to every row in the database.",
@@ -332,7 +328,7 @@
 					"notionPropertyType": {
 						"description": "The type of the Notion property. Note: Not all property types are supported as of now. Unsupported types that may get supported later on: status, files, checkbox, email, phone number. If you would like one of these supported, please open an Issue on the project's Github page.",
 						"type": "string",
-						"default": "text",
+						"default": "rich_text",
 						"oneOf": [
 							{
 								"const": "rich_text",

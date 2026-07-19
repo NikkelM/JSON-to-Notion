@@ -125,11 +125,12 @@ The following is a list of all configuration items, their defaults and the value
 <details>
 <summary><code>notionIntegrationKey</code></summary>
 
-The secret integration key for your Notion integration. Find it on your integration dashboard after creating a new integration on https://www.notion.so/my-integrations
+The secret integration key for your Notion integration (create or find it at https://www.notion.so/my-integrations).
+**Provide this via the `NOTION_INTEGRATION_KEY` environment variable** (see [Security](#security)). Storing it in `config.json` is no longer allowed, and the tool will refuse to run if it is set there.
 
 | Type | Default value | Possible values | Required |
 | --- | --- | --- | --- |
-| `string` | `""` | A valid Notion integration key | Yes |
+| environment variable | - | A valid Notion integration key | Yes, via `NOTION_INTEGRATION_KEY` |
 </details>
 
 <details>

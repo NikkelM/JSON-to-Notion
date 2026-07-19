@@ -1,6 +1,7 @@
 // Description: Core import logic - activates a validated config, verifies the Notion database, then creates a Notion page per input object
 
 import cliProgress from 'cli-progress';
+import { confirm } from '@inquirer/prompts';
 
 import { CONFIG, INPUTFILE, initConfig, resolveSecret, writeErroredObjectsToFile, writeObjectsMissingInInputToFile } from './utils.js';
 import { checkNotionPropertiesExistence, createNotionPage, removeNotionPage, getExistingPagesFromNotionDatabase } from './notion.js';
@@ -57,16 +58,20 @@ async function importObjects() {
 		objectsAlreadyInDB = await getExistingPagesFromNotionDatabase();
 	}
 
-	// For the skipExisting policy, only get the skippedPropertyValue of the objectsAlreadyInDB
+	// For the skipExisting policy, only get the skippedPropertyValue of the objectsAlreadyInDB (normalized to strings, since Notion returns text while the JSON value may be a number)
 	if (CONFIG.skipExisting?.enabled) {
-		var propertiesAlreadyInDB = objectsAlreadyInDB.map(object => object.skippedPropertyValue);
+		var propertiesAlreadyInDB = objectsAlreadyInDB.map(object => String(object.skippedPropertyValue));
 	}
 
 	// For the missingInInputPolicy, get all objects that are in the database but not in the input file
 	if (CONFIG.missingInInputPolicy && CONFIG.missingInInputPolicy.policy !== "noAction") {
-		const inputObjects = Object.values(INPUTFILE).map(object => object[CONFIG.missingInInputPolicy.jsonKey]);
+		const inputObjects = Object.values(INPUTFILE).map(object => String(object[CONFIG.missingInInputPolicy.jsonKey]));
 		for (const object of objectsAlreadyInDB) {
-			if (!inputObjects.includes(object.missingPropertyValue)) {
+			// A null value means the page never had this property set (it only matched the skipExisting property in an OR query), so it is not "missing from the input"
+			if (object.missingPropertyValue == null) {
+				continue;
+			}
+			if (!inputObjects.includes(String(object.missingPropertyValue))) {
 				numObjectsMissingInInput++;
 				pagesMissingInInput.push(object);
 			}
@@ -77,9 +82,25 @@ async function importObjects() {
 		if (numObjectsMissingInInput > 0) {
 			switch (CONFIG.missingInInputPolicy.policy) {
 				case "remove":
-					console.log("Removing objects missing in the input file from the database...");
-					for (const page of pagesMissingInInput) {
-						await removeNotionPage(page.pageId);
+					// Refuse to archive when the input is empty - that would remove every matching page in the database
+					if (Object.keys(INPUTFILE).length === 0) {
+						console.error(`\nNot running the "remove" policy: the input file is empty, which would archive every matching page in the database. Aborting.`);
+						process.exit(1);
+					}
+					// Archiving is destructive, so confirm in an interactive shell (proceed with a warning when non-interactive, since the policy was configured deliberately)
+					let doRemove = true;
+					if (process.stdin.isTTY) {
+						doRemove = await confirm({ message: `The "remove" policy will archive ${numObjectsMissingInInput} Notion page(s) that are missing from the input file. Continue?`, default: false });
+					} else {
+						console.log(`Warning: the "remove" policy will archive ${numObjectsMissingInInput} Notion page(s) missing from the input file.`);
+					}
+					if (doRemove) {
+						console.log("Removing objects missing in the input file from the database...");
+						for (const page of pagesMissingInInput) {
+							await removeNotionPage(page.pageId);
+						}
+					} else {
+						console.log("Skipped removing pages (they are still alerted below).");
 					}
 				// No break, as we also want to alert those objects
 				case "alert":
@@ -105,7 +126,7 @@ async function importObjects() {
 	progressBar.start(Object.keys(INPUTFILE).length, 0);
 
 	for (const [inputKey, inputObject] of Object.entries(INPUTFILE)) {
-		if (CONFIG.skipExisting?.enabled && propertiesAlreadyInDB.includes(inputObject[CONFIG.skipExisting.jsonKey])) {
+		if (CONFIG.skipExisting?.enabled && propertiesAlreadyInDB.includes(String(inputObject[CONFIG.skipExisting.jsonKey]))) {
 			progressBar.increment();
 			numObjectsSkipped++;
 			continue;
@@ -130,10 +151,15 @@ async function importObjects() {
 					case "multi_select":
 						outputProperties = handleMultiSelectProperty(inputObject, jsonProperty, outputProperties);
 						break;
+					case "select":
+						outputProperties = handleSelectProperty(inputObject, jsonProperty, outputProperties);
+						break;
 					case "cover":
 					case "icon":
 						outputProperties = handlePageIconOrCover(inputObject, jsonProperty, outputProperties, jsonProperty.notionPropertyType);
 						break;
+					default:
+						throw new Error(`Unsupported notionPropertyType "${jsonProperty.notionPropertyType}" for property "${jsonProperty.notionPropertyName}". Valid types: title, rich_text, number, date, url, select, multi_select, cover, icon.`);
 				}
 			}
 
@@ -181,48 +207,37 @@ async function importObjects() {
 // ----- Nested object policy -----
 
 export function applyNestedObjectPolicy(inputObject, configProperty) {
-	if (!configProperty.nestedObjectPolicy) {
+	const policy = configProperty.nestedObjectPolicy;
+	if (!policy) {
 		throw new Error(`No nested object policy specified for property "${configProperty.notionPropertyName}"`);
 	}
 
-	let output = "";
 	let priorityList = null;
-	try {
-		switch (configProperty.nestedObjectPolicy.policy) {
-			case "useNamedProperty":
-				priorityList = [[configProperty.nestedObjectPolicy.namedProperty]];
-				break;
-			case "concatenateProperties":
-				for (const property of Object.values(inputObject[configProperty.jsonKey])) {
-					output += `${property},`;
-				}
-				output = output.slice(0, -1);
-				return output;
-			case "usePriorityList":
-				priorityList = configProperty.nestedObjectPolicy.priorityList;
-		}
-
-		for (const property of priorityList) {
-			if (inputObject[configProperty.jsonKey][property] !== undefined) {
-				output = inputObject[configProperty.jsonKey][property];
-				// If output is of type object, use the first value
-				if (typeof output === "object") {
-					output = Object.values(output)[0];
-				}
-				break;
-			}
-		}
-		return output;
-
-	} catch (error) {
-		console.log("Error while applying nested object policy:");
-		console.log(error);
-		console.log("Input object:");
-		console.log(inputObject);
-		console.log("Config property:");
-		console.log(configProperty);
-		process.exit(1);
+	switch (policy.policy) {
+		case "useNamedProperty":
+			priorityList = [policy.namedProperty];
+			break;
+		case "concatenateProperties":
+			return Object.values(inputObject[configProperty.jsonKey]).join(",");
+		case "usePriorityList":
+			priorityList = policy.priorityList;
+			break;
+		default:
+			throw new Error(`Unknown nestedObjectPolicy "${policy.policy}" for property "${configProperty.notionPropertyName}". Valid policies: useNamedProperty, concatenateProperties, usePriorityList.`);
 	}
+
+	let output = "";
+	for (const property of priorityList ?? []) {
+		if (inputObject[configProperty.jsonKey][property] !== undefined) {
+			output = inputObject[configProperty.jsonKey][property];
+			// If output is of type object, use the first value
+			if (typeof output === "object") {
+				output = Object.values(output)[0];
+			}
+			break;
+		}
+	}
+	return output;
 }
 
 // ----- Formatting -----
@@ -272,7 +287,7 @@ export function addToNotionObject(value, type) {
 			};
 		case "select":
 			return {
-				"select": value
+				"select": (value && typeof value === "object") ? value : { "name": value }
 			};
 	}
 }
@@ -289,6 +304,11 @@ export function formatProperty(inputObject, configProperty, outputProperties, pr
 		value = applyNestedObjectPolicy(inputObject, configProperty);
 	}
 
+	// Notion rejects a null/empty content for text-like and date properties, so skip them rather than failing the whole page (number and url accept null)
+	if ((value === null || value === "") && ["title", "rich_text", "date"].includes(propertyType)) {
+		return outputProperties;
+	}
+
 	// If the value is of type string, restrict it to a length of 2000 characters
 	if (typeof value === "string") {
 		value = value.slice(0, 2000);
@@ -302,41 +322,57 @@ export function formatProperty(inputObject, configProperty, outputProperties, pr
 
 // As multi_select gets interpreted from a string, it needs to be handled separately
 export function handleMultiSelectProperty(inputObject, configProperty, outputProperties) {
-	// Get the value of the property from the JSON file. If it does not exist, set it to null
-	let value = inputObject[configProperty.jsonKey] || null;
+	let value = inputObject[configProperty.jsonKey] ?? null;
 
 	if (value && typeof value === "object") {
 		value = applyNestedObjectPolicy(inputObject, configProperty);
 	}
 
-	// Split the value string into an array of objects using , as delimiter
-	value = value.split(",").map((value) => {
-		return {
-			"name": value
-		}
-	});
+	// A missing, empty, or non-string value yields an empty multi_select rather than crashing on .split
+	const names = (value === null || value === undefined || value === "")
+		? []
+		: String(value).split(",").map((name) => ({ "name": name }));
 
 	// Set the value of the property in the output object
-	outputProperties.properties[configProperty.notionPropertyName] = addToNotionObject(value, "multi_select");
+	outputProperties.properties[configProperty.notionPropertyName] = addToNotionObject(names, "multi_select");
+
+	return outputProperties;
+}
+
+// A select value is a single string that must be wrapped as a { name } object for the Notion API
+export function handleSelectProperty(inputObject, configProperty, outputProperties) {
+	let value = inputObject[configProperty.jsonKey] ?? null;
+
+	if (value && typeof value === "object") {
+		value = applyNestedObjectPolicy(inputObject, configProperty);
+	}
+
+	// Notion rejects an empty select, so skip it rather than failing the whole page
+	if (value === null || value === undefined || value === "") {
+		return outputProperties;
+	}
+
+	outputProperties.properties[configProperty.notionPropertyName] = addToNotionObject({ "name": String(value).slice(0, 2000) }, "select");
 
 	return outputProperties;
 }
 
 export function handlePageIconOrCover(inputObject, configProperty, outputProperties, propertyType) {
-	// Get the value of the property from the JSON file. If it does not exist, set it to null
-	let value = inputObject[configProperty.jsonKey] || null;
+	let value = inputObject[configProperty.jsonKey] ?? null;
 
 	if (value && typeof value === "object") {
 		value = applyNestedObjectPolicy(inputObject, configProperty);
 	}
 
-	// Set the value of the property in the output object
-	outputProperties[propertyType] = {
-		"type": "external",
-		"external": {
-			"url": value
-		}
-	};
+	// Notion rejects a null/empty external URL, so only set the icon/cover when there is a real URL (leaving it null otherwise, which the create call tolerates)
+	if (typeof value === "string" && value.trim() !== "") {
+		outputProperties[propertyType] = {
+			"type": "external",
+			"external": {
+				"url": value
+			}
+		};
+	}
 
 	return outputProperties;
 }
