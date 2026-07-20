@@ -3,17 +3,24 @@ import { CONFIG } from './utils.js';
 
 // ---------- Notion API ----------
 
-const NOTION = new Client({
-	auth: CONFIG.notionIntegrationKey?.trim(),
-	logLevel: LogLevel.ERROR
-});
-const DATABASE_ID = CONFIG.notionDatabaseId?.trim();
-// Will be set to the only available data source if none is provided in the config and only one exists in the database
-let DATASOURCE_ID = CONFIG.notionDataSourceId?.trim() || null;
+// The Notion client is created lazily so importing this module does not require a loaded config
+let _notion;
+function notion() {
+	if (!_notion) {
+		_notion = new Client({
+			auth: CONFIG.notionIntegrationKey?.trim(),
+			logLevel: LogLevel.ERROR
+		});
+	}
+	return _notion;
+}
+
+// Set to the configured data source, or discovered in checkNotionPropertiesExistence if only one exists
+let DATASOURCE_ID = null;
 
 export async function createNotionPage(properties) {
 	// Create a new page in the database
-	await NOTION.pages.create({
+	await notion().pages.create({
 		parent: {
 			data_source_id: DATASOURCE_ID
 		},
@@ -24,7 +31,7 @@ export async function createNotionPage(properties) {
 }
 
 export async function removeNotionPage(pageId) {
-	await NOTION.pages.update({
+	await notion().pages.update({
 		page_id: pageId,
 		archived: true
 	});
@@ -81,12 +88,15 @@ export async function checkNotionPropertiesExistence() {
 		}
 	}
 
-	const databaseResponse = await NOTION.databases.retrieve({
-		database_id: DATABASE_ID
+	// Resolve the data source: use the configured one, or discover it if the database has exactly one
+	DATASOURCE_ID = CONFIG.notionDataSourceId?.trim() || null;
+
+	const databaseResponse = await notion().databases.retrieve({
+		database_id: CONFIG.notionDatabaseId?.trim()
 	});
 
-	if (CONFIG.notionDataSourceId) {
-		if (databaseResponse.data_sources.find(ds => ds.id === CONFIG.notionDataSourceId) === undefined) {
+	if (DATASOURCE_ID) {
+		if (databaseResponse.data_sources.find(ds => ds.id === DATASOURCE_ID) === undefined) {
 			console.error("Error validating configuration file: Notion database does not contain a data source with the ID specified in the configuration file. Check the \"notionDataSourceId\" property in your config.json");
 			process.exit(1);
 		}
@@ -97,7 +107,7 @@ export async function checkNotionPropertiesExistence() {
 		process.exit(1);
 	}
 
-	const response = await NOTION.dataSources.retrieve({
+	const response = await notion().dataSources.retrieve({
 		data_source_id: DATASOURCE_ID
 	});
 
@@ -118,7 +128,7 @@ export async function getExistingPagesFromNotionDatabase() {
 	let newPage = {};
 
 	async function getPages(cursor) {
-		// While there are more pages left in the query, get pages from the database. 
+		// While there are more pages left in the query, get pages from the database
 		const currentPages = await queryDatabase(cursor);
 
 		currentPages.results.forEach(page => {
@@ -225,5 +235,5 @@ async function queryDatabase(cursor) {
 		query.filter = { "or": filterConditions };
 	}
 
-	return await NOTION.dataSources.query(query);
+	return await notion().dataSources.query(query);
 }

@@ -11,25 +11,27 @@
 			"default": "config.schema.json"
 		},
 		"notionIntegrationKey": {
-			"description": "The secret integration key for your Notion integration. Find it on your integration dashboard after creating a new integration on https://www.notion.so/my-integrations",
+			"description": "The secret integration key for your Notion integration (create or find it at https://www.notion.so/my-integrations). Provide this via the NOTION_INTEGRATION_KEY environment variable - storing it here is no longer allowed and the tool will refuse to run if it is set.",
 			"type": "string",
 			"default": ""
 		},
 		"notionDatabaseId": {
-			"description": "The ID of the database you want to run the integration on. You can find the ID in the URL of your database, e.g. https://www.notion.so/myworkspace/your-database-id",
+			"description": "The ID of the database you want to run the integration on. You can find the ID in the URL of your database, e.g. https://www.notion.so/myworkspace/your-database-id. This is a 32-character hexadecimal ID (or the dashed UUID form).",
 			"type": "string",
-			"default": ""
+			"default": "",
+			"pattern": "^([0-9a-fA-F]{32}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})?$"
 		},
 		"notionDataSourceId": {
-			"description": "The ID of the data source you want to run the integration on. This is required if you have multiple data sources in your database. You can find the ID under the \"Manage data sources\" menu in the database settings. If you only have one data source (which is the default), you can leave this property empty.",
+			"description": "The ID of the data source you want to run the integration on. This is required if you have multiple data sources in your database. You can find the ID under the \"Manage data sources\" menu in the database settings. If you only have one data source (which is the default), you can leave this property empty. This is a 32-character hexadecimal ID (or the dashed UUID form).",
 			"type": "string",
-			"default": ""
+			"default": "",
+			"pattern": "^([0-9a-fA-F]{32}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})?$"
 		},
 		"inputFile": {
 			"description": "The JSON file to import to Notion.",
 			"type": "string",
 			"default": "input.json",
-			"pattern": ".*.json"
+			"pattern": "\\.json$"
 		},
 		"skipExisting": {
 			"description": "Whether to skip already existing entries in the database. If set to true, the script will only import entries that do not exist in the database yet.",
@@ -45,7 +47,7 @@
 				"enabled": {
 					"description": "Whether to skip existing entries in the database.",
 					"type": "boolean",
-					"default": true
+					"default": false
 				},
 				"jsonKey": {
 					"description": "The key in the JSON input that should be compared to the value of the \"notionProperty\".",
@@ -221,6 +223,9 @@
 							"namedProperty": "nameOfNestedProperty"
 						},
 						"additionalProperties": false,
+						"required": [
+							"policy"
+						],
 						"properties": {
 							"policy": {
 								"description": "The policy to use when the value of the specified JSON key contains another JSON object.",
@@ -294,14 +299,7 @@
 						"notionPropertyType"
 					]
 				}
-			},
-			"required": [
-				"notionIntegrationKey",
-				"notionDatabaseId",
-				"inputFile",
-				"inputIsArray",
-				"propertyMappings"
-			]
+			}
 		},
 		"extraProperties": {
 			"description": "Extra properties to add to the Notion database. These properties will be added to every row in the database.",
@@ -330,7 +328,7 @@
 					"notionPropertyType": {
 						"description": "The type of the Notion property. Note: Not all property types are supported as of now. Unsupported types that may get supported later on: status, files, checkbox, email, phone number. If you would like one of these supported, please open an Issue on the project's Github page.",
 						"type": "string",
-						"default": "text",
+						"default": "rich_text",
 						"oneOf": [
 							{
 								"const": "rich_text",
@@ -372,7 +370,6 @@
 		}
 	},
 	"required": [
-		"notionIntegrationKey",
 		"notionDatabaseId",
 		"inputFile",
 		"propertyMappings"
